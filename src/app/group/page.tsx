@@ -3,7 +3,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
 
+type Group = {
+  id: string;
+  name: string;
+  iconUrl?: string;
+};
+
+const group: Group = {
+  id: "group-1",
+  name: "情報工学科A班",
+  iconUrl: "",
+};
 
 type User = {
   id: string;
@@ -58,17 +70,56 @@ export default function GroupPage() {
             <p>ここにグループの内容が表示されます。</p>
         </div>
         <div>aaa</div>
-        <Card>
-            <CardContent>グループ名</CardContent>
-        </Card>
-        <Card>
-            <CardContent></CardContent>
-        </Card>
+        <div className="mb-8 flex items-center gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarImage src={group.iconUrl} />
+            <AvatarFallback className="text-xl">
+              {group.name.slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+
+        <div>
+          <h1 className="text-3xl font-bold">{group.name}</h1>
+          <p className="text-muted-foreground">
+            メンバー {users.length}人
+          </p>
+        </div>
+      </div>
+      <Accordion type="single" collapsible className="mb-6">
+        <AccordionItem value="members">
+          <AccordionTrigger className="text-lg font-semibold">
+            メンバー一覧（{users.length}人）
+          </AccordionTrigger>
+
+          <AccordionContent>
+            <div className="space-y-3">
+              {users.map((user) => (
+                <Card
+                  key={user.id}
+                  className="flex items-center gap-4 p-3"
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user.iconUrl} />
+                    <AvatarFallback>
+                      {user.username.slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex-1">
+                    <p className="font-medium">{user.username}</p>
+                  </div>  
+                </Card>
+            ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+        
         <Button>予定作成</Button>
         <Card>
             <CardContent>予定</CardContent>
         </Card>
-        
+
     <main className="mx-auto max-w-2xl p-6">
       <h1 className="mb-6 text-3xl font-bold">
         遅刻ランキング

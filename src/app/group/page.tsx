@@ -65,18 +65,15 @@ export default function GroupPage() {
   );
 
   return (
-    <><div>
-            <h1>グループページ</h1>
-            <p>ここにグループの内容が表示されます。</p>
-        </div>
-        <div>aaa</div>
-        <div className="mb-8 flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={group.iconUrl} />
-            <AvatarFallback className="text-xl">
-              {group.name.slice(0, 2)}
-            </AvatarFallback>
-          </Avatar>
+    <main className="mx-auto w-full max-w-2xl p-6">
+
+      <div className="mb-6 flex items-center gap-4">
+        <Avatar className="h-16 w-16">
+          <AvatarImage src={group.iconUrl} />
+          <AvatarFallback className="text-xl">
+            {group.name.slice(0, 2)}
+          </AvatarFallback>
+        </Avatar>
 
         <div>
           <h1 className="text-3xl font-bold">{group.name}</h1>
@@ -85,88 +82,101 @@ export default function GroupPage() {
           </p>
         </div>
       </div>
-      <Accordion type="single" collapsible className="mb-6">
-        <AccordionItem value="members">
-          <AccordionTrigger className="text-lg font-semibold">
-            メンバー一覧（{users.length}人）
-          </AccordionTrigger>
 
-          <AccordionContent>
-            <div className="space-y-3">
-              {users.map((user) => (
-                <Card
-                  key={user.id}
-                  className="flex items-center gap-4 p-3"
-                >
-                  <Avatar className="h-10 w-10">
+      <Card className="mb-4 bg-gray-100/80 p-0 overflow-hidden">
+        <CardContent className="p-0">
+          <Accordion type="single" collapsible >
+            <AccordionItem value="members">
+              <AccordionTrigger
+                className="px-4 py-2 bg-gray-200 px-4 text-lg font-semibold hover:bg-gray-200/60"
+              >
+                メンバー一覧（{users.length}人）
+              </AccordionTrigger>
+
+              <AccordionContent className="px-2 pt-3 pb-2">
+                <div className="space-y-2">
+                  {users.map((user) => (
+                    <Card
+                      key={user.id}
+                      className="p-3"
+                    >
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={user.iconUrl} />
+                          <AvatarFallback>
+                            {user.username.slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <p className="font-medium">{user.username}</p>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
+    
+    <Button>予定作成</Button><Card>
+        <CardContent>予定</CardContent>
+      </Card>
+      <section>
+        <h1 className="mb-4 text-3xl font-bold">
+          遅刻ランキング
+        </h1>
+
+        <div className="space-y-4">
+          {ranking.map((user, index) => (
+            <Card
+              key={user.id}
+              className={`w-full p-4 ${
+                index === 0
+                  ? "border-2 border-amber-500"
+                  : ""
+              }`}
+            >
+              <div className="flex w-full items-center gap-4">
+
+                {/* 順位 */}
+                  <div
+                    className={`w-16 shrink-0 text-center font-bold ${
+                      index === 0
+                        ? "text-3xl text-amber-500"
+                        : "text-lg"
+                      }`}
+                  >
+                    {index === 0 ? "1位" : `${index + 1}位`}
+                </div>
+
+                  {/* アイコン */}
+                  <Avatar className="h-12 w-12 shrink-0">
                     <AvatarImage src={user.iconUrl} />
                     <AvatarFallback>
                       {user.username.slice(0, 2)}
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="flex-1">
-                    <p className="font-medium">{user.username}</p>
-                  </div>  
-                </Card>
-            ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-        
-        <Button>予定作成</Button>
-        <Card>
-            <CardContent>予定</CardContent>
-        </Card>
+                    {/* ユーザー名 */}
+                    <p className="min-w-0 flex-1 text-lg font-semibold">
+                      {user.username}
+                    </p>
+                
 
-    <main className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-6 text-3xl font-bold">
-        遅刻ランキング
-      </h1>
-
-      <div className="space-y-4">
-        {ranking.map((user, index) => (
-          <Card
-            key={user.id}
-            className="flex items-center justify-between p-4"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 text-center text-2xl font-bold">
-                {index === 0
-                  ? "🥇"
-                  : index === 1
-                  ? "🥈"
-                  : index === 2
-                  ? "🥉"
-                  : `${index + 1}位`}
+                {/* 遅刻回数 */}
+                <Badge
+                  variant="destructive"
+                  className="shrink-0 px-3 py-1 text-base"
+                >
+                  {user.lateCount}回
+                </Badge>
               </div>
-
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={user.iconUrl} />
-                <AvatarFallback>
-                  {user.username.slice(0, 2)}
-                </AvatarFallback>
-              </Avatar>
-
-              <div>
-                <p className="text-lg font-semibold">
-                  {user.username}
-                </p>
-              </div>
-            </div>
-
-            <Badge
-              variant="destructive"
-              className="px-3 py-1 text-base"
-            >
-              {user.lateCount}回
-            </Badge>
-          </Card>
-        ))}
-      </div>
-    </main>
-    </>
+            </Card>
+          ))}
+        </div>
+      </section>
+  </main>
   );
 }
 

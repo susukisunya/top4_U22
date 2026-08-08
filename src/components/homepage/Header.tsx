@@ -6,7 +6,7 @@ export default function Header() {
       <Menu size={22} />
 
       <h1 className="text-xl font-bold text-orange-600">
-        遅刻ガード
+        遅刻カード
       </h1>
 
       <Bell size={20} />

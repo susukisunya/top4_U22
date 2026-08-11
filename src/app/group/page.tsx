@@ -4,6 +4,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
+import Link from "next/link";
+import { MoreVertical } from "lucide-react";
 
 type Group = {
   id: string;
@@ -67,6 +69,7 @@ export default function GroupPage() {
   return (
     <main className="mx-auto w-full max-w-2xl p-6">
 
+      {/* グループ名 */}
       <div className="mb-6 flex items-center gap-4">
         <Avatar className="h-16 w-16">
           <AvatarImage src={group.iconUrl} />
@@ -81,8 +84,21 @@ export default function GroupPage() {
             メンバー {users.length}人
           </p>
         </div>
+
+        {/* グループ設定 */}
+        <Button
+          variant="ghost"
+          size="icon"
+          asChild
+          className="ml-auto"
+        >
+          <Link href="/group/settings" aria-label="グループ設定">
+            <MoreVertical className="h-5 w-5" />
+          </Link>
+        </Button>
       </div>
 
+      {/* メンバー一覧 */}
       <Card className="mb-4 bg-gray-100/80 p-0 overflow-hidden">
         <CardContent className="p-0">
           <Accordion type="single" collapsible >
@@ -118,10 +134,23 @@ export default function GroupPage() {
           </Accordion>
         </CardContent>
       </Card>
-    
-    <Button>予定作成</Button><Card>
+      
+      {/* 予定作成 */}
+      <Button
+        asChild
+        className="mb-4 w-full text-base font-semibold"
+      >
+        <Link href="/group/schedule/create">
+          予定作成
+        </Link>
+      </Button>
+
+      {/* 次回予定表示 */}
+      <Card>
         <CardContent>予定</CardContent>
       </Card>
+
+      {/* 遅刻ランキング */}
       <section>
         <h1 className="mb-4 text-3xl font-bold">
           遅刻ランキング

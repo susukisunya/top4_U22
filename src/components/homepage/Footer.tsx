@@ -2,7 +2,7 @@ import { Home, User, Settings,  } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="flex justify-between items-center border-t-2 px-4 px-3">
+    <footer className="flex justify-between items-center border-t-2 border-black px-4 py-3">
         <div className="flex flex-col items-center">
             <Home size={22} />
                 <h1 className="text-xs text-gray-600">

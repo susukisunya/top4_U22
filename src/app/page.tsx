@@ -1,6 +1,7 @@
 import Header from "@/components/homepage/Header";
 import MonthlyLateCard from "@/components/homepage/MonthlyLateCard";
 import ScheduleList from "@/components/homepage/ScheduleList";
+import Footer from "@/components/homepage/Footer";
 
 export default function Home() {
   return (
@@ -14,6 +15,8 @@ export default function Home() {
 
         <ScheduleList />
       </div>
+
+      <Footer/>
     </main>
   );
 }

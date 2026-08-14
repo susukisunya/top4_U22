@@ -43,7 +43,7 @@ export default function LateGuardApp() {
       
       <MissionCard />
 
-      <MapCard />
+      <MapCard location="Shinjuku East Exit, Tokyo" label="TARGET" />
 
       <RouteDeadlineCard />
 

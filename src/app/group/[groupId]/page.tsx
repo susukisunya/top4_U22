@@ -13,6 +13,12 @@ type Group = {
   iconUrl?: string;
 };
 
+type Props = {
+  params: Promise<{
+    groupId: string;
+  }>;
+};
+
 const group: Group = {
   id: "group-1",
   name: "情報工学科A班",
@@ -60,7 +66,9 @@ const users: User[] = [
   },
 ];
 
-export default function GroupPage() {
+export default async function GroupPage({ params }: Props) {
+  const { groupId } = await params;
+
   // 遅刻回数が少ない順に並び替え
   const ranking = [...users].sort(
     (a, b) => a.lateCount - b.lateCount
@@ -92,7 +100,7 @@ export default function GroupPage() {
           asChild
           className="ml-auto"
         >
-          <Link href="/group/settings" aria-label="グループ設定">
+          <Link href={`/group/${groupId}/settingGroup`} aria-label="グループ設定">
             <MoreVertical className="h-5 w-5" />
           </Link>
         </Button>
@@ -140,7 +148,7 @@ export default function GroupPage() {
         asChild
         className="mb-4 w-full text-base font-semibold"
       >
-        <Link href="/group/schedule/create">
+        <Link href={`/group/${groupId}/createEvent`}>
           予定作成
         </Link>
       </Button>

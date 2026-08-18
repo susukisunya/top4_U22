@@ -7,6 +7,13 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useParams } from "next/navigation";
+
+type Props = {
+  params: Promise<{
+    groupId: string;
+  }>;
+};
 
 type User = {
   id: string;
@@ -44,6 +51,9 @@ const users: User[] = [
 ];
 
 export default function CreateSchedulePage() {
+  const params = useParams<{ groupId: string }>();
+  const groupId = params.groupId;
+
   const [scheduleName, setScheduleName] = useState("");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
@@ -176,11 +186,12 @@ export default function CreateSchedulePage() {
       </Card>
 
       <Button variant="outline" asChild>
-        <Link href="/group">
+        <Link href={`/group/${groupId}`}>
             戻る
         </Link>
       </Button>
     </main>
+  
 
   );
 }

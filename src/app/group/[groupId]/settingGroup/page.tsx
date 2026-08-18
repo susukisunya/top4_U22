@@ -30,6 +30,12 @@ type Group = {
   iconUrl?: string;
 };
 
+type Props = {
+  params: Promise<{
+    groupId: string;
+  }>;
+};
+
 const group: Group = {
   id: "group-1",
   name: "情報工学科A班",
@@ -38,7 +44,9 @@ const group: Group = {
 
 const memberCount = 5;
 
-export default function GroupSettingsPage() {
+export default async function SettingGroupPage({ params }: Props) {
+  const { groupId } = await params;
+
   return (
     <main className="mx-auto w-full max-w-2xl p-6">
 
@@ -342,7 +350,7 @@ export default function GroupSettingsPage() {
         asChild
         className="mt-6"
       >
-        <Link href="/group">
+        <Link href={`/group/${groupId}`}>
           グループページに戻る
         </Link>
       </Button>

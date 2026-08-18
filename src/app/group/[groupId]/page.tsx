@@ -1,4 +1,4 @@
-//グループ,ランキングページ
+//グループページ
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,17 @@ import { Button } from "@/components/ui/button"
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
 import Link from "next/link";
 import { MoreVertical } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Copy } from "lucide-react";
+import { Plus } from "lucide-react";
+import { GroupHeader } from "@/components/card/group-header";
 
 type Group = {
   id: string;
@@ -78,20 +89,12 @@ export default async function GroupPage({ params }: Props) {
     <main className="mx-auto w-full max-w-2xl p-6">
 
       {/* グループ名 */}
-      <div className="mb-6 flex items-center gap-4">
-        <Avatar className="h-16 w-16">
-          <AvatarImage src={group.iconUrl} />
-          <AvatarFallback className="text-xl">
-            {group.name.slice(0, 2)}
-          </AvatarFallback>
-        </Avatar>
-
-        <div>
-          <h1 className="text-3xl font-bold">{group.name}</h1>
-          <p className="text-muted-foreground">
-            メンバー {users.length}人
-          </p>
-        </div>
+      <div className="mb-4 flex items-center gap-4">
+        <GroupHeader
+          name={group.name}
+          iconUrl={group.iconUrl}
+          memberCount={users.length}
+        />
 
         {/* グループ設定 */}
         <Button
@@ -112,7 +115,7 @@ export default async function GroupPage({ params }: Props) {
           <Accordion type="single" collapsible >
             <AccordionItem value="members">
               <AccordionTrigger
-                className="px-4 py-2 bg-gray-200 px-4 text-lg font-semibold hover:bg-gray-200/60"
+                className="px-4 py-2 bg-gray-200 text-lg font-semibold hover:bg-gray-200/60"
               >
                 メンバー一覧（{users.length}人）
               </AccordionTrigger>
@@ -142,14 +145,73 @@ export default async function GroupPage({ params }: Props) {
           </Accordion>
         </CardContent>
       </Card>
-      
+
+      {/* メンバー招待 */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            className="mb-4 w-full bg-gray-300 py-6 text-base font-semibold text-black shadow-sm hover:bg-gray-200"
+          >
+            ＋ メンバーを招待
+          </Button>
+        </DialogTrigger>
+
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              メンバーを招待
+            </DialogTitle>
+
+            <DialogDescription>
+              以下のQRコードまたはURLからグループに参加できます。
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* QRコード */}
+          <div className="flex flex-col items-center gap-3 py-4">
+            <p className="text-sm font-semibold">
+              QRコード
+            </p>
+
+            <div className="flex h-48 w-48 items-center justify-center rounded-lg border bg-gray-100">
+              <span className="text-sm text-muted-foreground">
+                QRコード
+              </span>
+            </div>
+          </div>
+
+          {/* 招待URL */}
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">
+              招待URL
+            </p>
+
+            <div className="flex gap-2">
+              <div className="flex-1 rounded-md border bg-gray-100 px-3 py-2 text-sm">
+                https://example.com/group/invite/abc123
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+        </DialogContent>
+      </Dialog>
+
+
       {/* 予定作成 */}
       <Button
         asChild
-        className="mb-4 w-full text-base font-semibold"
+        className="mb-6 w-full bg-gray-300 py-6 text-base font-semibold text-black shadow-sm hover:bg-gray-200"
       >
         <Link href={`/group/${groupId}/createEvent`}>
-          予定作成
+          ＋ 予定を作成
         </Link>
       </Button>
 

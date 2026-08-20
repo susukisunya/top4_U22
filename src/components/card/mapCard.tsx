@@ -1,19 +1,41 @@
 import React from 'react'
 import { Card } from "@/components/ui/card"
 
-export function MapCard() {
-  const TARGET_LABEL = "TARGET"
+interface MapCardProps {
+  /** 地図の中心にする住所・地名（例: "Shinjuku East Exit, Tokyo"） */
+  location?: string
+  /** 地図上に重ねて表示するラベル */
+  label?: string
+}
+
+export function MapCard({
+  location = "Shinjuku East Exit, Tokyo",
+  label = "TARGET",
+}: MapCardProps) {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  const encodedLocation = encodeURIComponent(location)
+
+  // APIキーが設定されていれば公式の Google Maps Embed API を使用し、
+  // 未設定の場合はキー不要の埋め込みURLにフォールバックする
+  const mapSrc = apiKey
+    ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodedLocation}`
+    : `https://www.google.com/maps?q=${encodedLocation}&output=embed`
 
   return (
     <Card className="border-2 border-stone-900 shadow-[4px_4px_0px_0px_rgba(28,25,23,1)] overflow-hidden rounded-xl h-48 relative bg-stone-800">
-      <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:14px_24px]"></div>
-      
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+      <iframe
+        title={`Google Map - ${label}`}
+        src={mapSrc}
+        className="absolute inset-0 h-full w-full border-0"
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        allowFullScreen
+      />
+
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none">
         <div className="bg-[#9E3311] text-white text-[10px] font-bold px-2 py-1 rounded border border-stone-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] tracking-wider">
-          {TARGET_LABEL}
+          {label}
         </div>
-        <div className="w-3 h-3 bg-[#A8431E] border-2 border-white rounded-full mt-1 animate-ping absolute bottom-[-12px]"></div>
-        <div className="w-3 h-3 bg-[#A8431E] border-2 border-stone-900 rounded-full mt-1 z-10"></div>
       </div>
     </Card>
   )

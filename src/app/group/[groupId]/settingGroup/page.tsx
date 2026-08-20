@@ -1,5 +1,7 @@
+//グループ設定ページ
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,6 +25,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useParams } from "next/navigation";
+import { GroupHeader } from "@/components/card/group-header";
 
 type Group = {
   id: string;
@@ -38,29 +43,86 @@ const group: Group = {
 
 const memberCount = 5;
 
-export default function GroupSettingsPage() {
+export default function SettingGroupPage() {
+  const params = useParams<{ groupId: string }>();
+  const groupId = params.groupId;
+
+  // 現在のグループ名
+  const [groupName, setGroupName] = useState(group.name);
+
+  // 現在のグループアイコン
+  const [groupIcon, setGroupIcon] = useState(group.iconUrl ?? "");
+
+  // 選択した画像
+  const [selectedIcon, setSelectedIcon] = useState("");
+
+  // 入力中のグループ名
+  const [newGroupName, setNewGroupName] = useState(group.name);
+
+  // グループ名を変更
+  const handleChangeGroupName = () => {
+    if (!newGroupName.trim()) {
+      return;
+    }
+
+    setGroupName(newGroupName.trim());
+  };
+
+  // アイコン画像を選択
+  const handleIconChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    // 画像ファイルか確認
+    if (!file.type.startsWith("image/")) {
+      return;
+    }
+
+    // 選択した画像をブラウザ上で表示する
+    const imageUrl = URL.createObjectURL(file);
+
+    setSelectedIcon(imageUrl);
+  };
+
+  // アイコンを変更
+  const handleChangeIcon = () => {
+    if (!selectedIcon) {
+      return;
+    }
+
+    setGroupIcon(selectedIcon);
+  };
+
+// このグループ内で使用する表示名
+const [displayName, setDisplayName] = useState("");
+
+// 入力中の表示名
+const [newDisplayName, setNewDisplayName] = useState("");
+
+const handleChangeDisplayName = () => {
+  const trimmedName = newDisplayName.trim();
+
+  if (trimmedName === "") {
+    return;
+  }
+
+  setDisplayName(trimmedName);
+};
+
   return (
     <main className="mx-auto w-full max-w-2xl p-6">
 
       {/* グループ情報 */}
-      <div className="mb-8 flex items-center gap-4">
-        <Avatar className="h-16 w-16">
-          <AvatarImage src={group.iconUrl} />
-          <AvatarFallback className="text-xl">
-            {group.name.slice(0, 2)}
-          </AvatarFallback>
-        </Avatar>
-
-        <div>
-          <h1 className="text-3xl font-bold">
-            {group.name}
-          </h1>
-
-          <p className="text-muted-foreground">
-            メンバー {memberCount}人
-          </p>
-        </div>
-      </div>
+      <GroupHeader
+        name={groupName}
+        iconUrl={groupIcon}
+        memberCount={memberCount}
+      />
 
       {/* グループ設定 */}
       <Card>
@@ -71,50 +133,6 @@ export default function GroupSettingsPage() {
         </CardHeader>
 
         <CardContent className="p-0">
-
-          {/* メンバーの招待 */}
-          <Drawer>
-            <DrawerTrigger asChild>
-              <button
-                type="button"
-                className="flex w-full items-center justify-between border-t px-6 py-4 text-left transition-colors hover:bg-muted"
-              >
-                <span className="font-medium">
-                  メンバーの招待
-                </span>
-
-                <span className="text-muted-foreground">
-                  ＞
-                </span>
-              </button>
-            </DrawerTrigger>
-
-            <DrawerContent className="max-h-[50vh]">
-              <DrawerHeader>
-                <DrawerTitle>
-                  メンバーの招待
-                </DrawerTitle>
-
-                <DrawerDescription>
-                  グループに参加するメンバーを招待します。
-                </DrawerDescription>
-              </DrawerHeader>
-
-              <div className="mx-auto w-full max-w-2xl px-6 py-4">
-                <p className="text-sm text-muted-foreground">
-                  ここに招待機能を追加します。
-                </p>
-              </div>
-
-              <DrawerFooter>
-                <DrawerClose asChild>
-                  <Button variant="outline">
-                    閉じる
-                  </Button>
-                </DrawerClose>
-              </DrawerFooter>
-            </DrawerContent>
-          </Drawer>
 
           {/* グループ名の変更 */}
           <Drawer>
@@ -140,22 +158,39 @@ export default function GroupSettingsPage() {
                 </DrawerTitle>
 
                 <DrawerDescription>
-                  グループ名を変更します。
+                  新しいグループ名を入力してください。
                 </DrawerDescription>
               </DrawerHeader>
 
               <div className="mx-auto w-full max-w-2xl px-6 py-4">
-                <p className="text-sm text-muted-foreground">
-                  ここに機能を追加します。
-                </p>
+
+                <Input
+                  value={newGroupName}
+                  onChange={(event) =>
+                    setNewGroupName(event.target.value)
+                  }
+                  placeholder="グループ名を入力"
+                />
+
               </div>
 
               <DrawerFooter>
+
                 <DrawerClose asChild>
-                  <Button variant="outline">
-                    閉じる
+                  <Button
+                    onClick={handleChangeGroupName}
+                    disabled={!newGroupName.trim()}
+                  >
+                    変更する
                   </Button>
                 </DrawerClose>
+
+                <DrawerClose asChild>
+                  <Button variant="outline">
+                    キャンセル
+                  </Button>
+                </DrawerClose>
+
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
@@ -189,17 +224,58 @@ export default function GroupSettingsPage() {
               </DrawerHeader>
 
               <div className="mx-auto w-full max-w-2xl px-6 py-4">
-                <p className="text-sm text-muted-foreground">
-                  ここに機能を追加します。
-                </p>
+
+                {/* アイコンプレビュー */}
+                <div className="mb-6 flex justify-center">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage
+                      src={
+                        selectedIcon ||
+                        groupIcon
+                      }
+                    />
+
+                    <AvatarFallback className="text-2xl">
+                      {groupName.slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+
+                {/* ファイル選択 */}
+                <div className="space-y-3">
+                  <label
+                    htmlFor="group-icon"
+                    className="block text-sm font-medium"
+                  >
+                    アイコン画像
+                  </label>
+
+                  <Input
+                    id="group-icon"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleIconChange}
+                  />
+                </div>
+
               </div>
 
               <DrawerFooter>
+                <DrawerClose asChild>
+                  <Button
+                    onClick={handleChangeIcon}
+                    disabled={!selectedIcon}
+                  >
+                    アイコンを変更
+                  </Button>
+                </DrawerClose>
+
                 <DrawerClose asChild>
                   <Button variant="outline">
                     閉じる
                   </Button>
                 </DrawerClose>
+
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
@@ -228,22 +304,91 @@ export default function GroupSettingsPage() {
                 </DrawerTitle>
 
                 <DrawerDescription>
-                  グループ内で表示する名前を設定します。
+                  このグループ内で表示する名前を設定します。
                 </DrawerDescription>
               </DrawerHeader>
 
               <div className="mx-auto w-full max-w-2xl px-6 py-4">
-                <p className="text-sm text-muted-foreground">
-                  ここに機能を追加します。
+
+                {/* 現在の表示名 */}
+                <div className="mb-4">
+                  <p className="mb-2 text-sm text-muted-foreground">
+                    現在の表示名
+                  </p>
+
+                  {displayName ? (
+                    <p className="text-lg font-semibold">
+                      {displayName}
+                    </p>
+                  ) : (
+                    <p className="text-lg font-semibold text-muted-foreground">
+                      ユーザーネームを表示中
+                    </p>
+                  )}
+                </div>
+                
+                {/* 表示名入力 */}
+                <div>
+                  <p className="mb-2 text-sm font-medium">
+                    新しい表示名
+                  </p>
+
+                  <Input
+                    value={newDisplayName}
+                    onChange={(event) =>
+                      setNewDisplayName(event.target.value)
+                    }
+                    placeholder="このグループで使用する名前"
+                  />
+                </div>
+
+                <p className="mt-2 text-sm text-muted-foreground">
+                  この名前は{groupName}でのみ使用されます。
                 </p>
+
               </div>
 
               <DrawerFooter>
+
+                {/* 表示名を変更 */}
                 <DrawerClose asChild>
-                  <Button variant="outline">
+                  <Button
+                    onClick={() => {
+                      handleChangeDisplayName();
+                      setNewDisplayName("");
+                    }}
+                    disabled={newDisplayName.trim() === ""}
+                  >
+                    表示名を変更
+                  </Button>
+                </DrawerClose>
+
+                {/* ユーザーネームに戻す */}
+                {displayName && (
+                  <DrawerClose asChild>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setDisplayName("");
+                        setNewDisplayName("");
+                      }}
+                    >
+                      ユーザーネームに戻す
+                    </Button>
+                  </DrawerClose>
+                )}
+
+                {/* 閉じる */}
+                <DrawerClose asChild>
+                  <Button variant="outline" 
+                    onClick={() => {
+                      setNewDisplayName("");
+                    }}
+                  >
                     閉じる
                   </Button>
                 </DrawerClose>
+
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
@@ -342,7 +487,7 @@ export default function GroupSettingsPage() {
         asChild
         className="mt-6"
       >
-        <Link href="/group">
+        <Link href={`/group/${groupId}`}>
           グループページに戻る
         </Link>
       </Button>

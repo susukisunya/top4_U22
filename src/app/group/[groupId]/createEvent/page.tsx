@@ -1,3 +1,4 @@
+//予定作成
 "use client";
 
 import { useState } from "react";
@@ -7,10 +8,18 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useParams } from "next/navigation";
+import { GroupHeader } from "@/components/card/group-header";
 
 type User = {
   id: string;
   username: string;
+  iconUrl?: string;
+};
+
+type Group = {
+  id: string;
+  name: string;
   iconUrl?: string;
 };
 
@@ -43,8 +52,18 @@ const users: User[] = [
   },
 ];
 
-export default function CreateSchedulePage() {
-  const [scheduleName, setScheduleName] = useState("");
+const group: Group = {
+  id: "group-1",
+  name: "情報工学科A班",
+  iconUrl: "",
+};
+
+
+export default function CreateEventPage() {
+  const params = useParams<{ groupId: string }>();
+  const groupId = params.groupId;
+
+  const [eventName, setEventName] = useState("");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   // 選択されているメンバーのID
@@ -60,6 +79,12 @@ export default function CreateSchedulePage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl p-6">
+      <GroupHeader
+        name={group.name}
+        iconUrl={group.iconUrl}
+        memberCount={users.length}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
@@ -75,8 +100,8 @@ export default function CreateSchedulePage() {
             </h2>
 
             <Input
-              value={scheduleName}
-              onChange={(e) => setScheduleName(e.target.value)}
+              value={eventName}
+              onChange={(e) => setEventName(e.target.value)}
               placeholder="予定の名前を入力"
             />
           </div>
@@ -176,11 +201,11 @@ export default function CreateSchedulePage() {
       </Card>
 
       <Button variant="outline" asChild>
-        <Link href="/group">
+        <Link href={`/group/${groupId}`}>
             戻る
         </Link>
       </Button>
     </main>
-
+  
   );
 }

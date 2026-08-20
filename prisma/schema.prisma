@@ -16,3 +16,67 @@ datasource db {
   provider = "sqlite"
   url      = env("DEV_DATABASE_URL") //ここのエラーは気にしなくてok. 最新バージョンを使えと警告されてるだけ
 }
+
+model User {
+  id       String   @id @default(cuid())
+  name     String
+  icon     String
+  password String
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+
+  groupMembers GroupMember[]
+  eventMembers EventMember[]
+}
+
+model Group {
+  id        String        @id @default(uuid())
+  name      String
+  iconUrl   String
+  createdAt DateTime      @default(now())
+  members   GroupMember[]
+  events    Event[]
+}
+
+model Event {
+  id          String        @id @default(uuid())
+  groupId     String
+  title       String
+  description String?
+  location    String?
+  meetingTime DateTime
+  createdAt   DateTime      @default(now())
+  group       Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  members     EventMember[]
+}
+
+model GroupMember {
+  userId  String
+  groupId String
+
+  lateCount   Int      @default(0) // グループ内での遅刻回数
+  displayName String? // グループ内での表示名（未設定ならUser.nameを使用可能）
+  joinedAt    DateTime @default(now())
+
+  // リレーション
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  // 複合主キー
+  @@id([userId, groupId])
+}
+
+model EventMember {
+  userId  String
+  eventId String
+
+  isAttending Boolean   @default(true)
+  meetingTime DateTime? // ユーザーごとの集合時間（※全体と個別で分ける場合）
+
+  // リレーション
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // 複合主キー
+  @@id([userId, eventId])
+}

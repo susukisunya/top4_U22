@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useParams } from "next/navigation";
 import { GroupHeader } from "@/components/card/group-header";
+import Header from "@/components/homepage/Header";
+import Footer from "@/components/homepage/Footer";
 
 type User = {
   id: string;
@@ -78,7 +80,9 @@ export default function CreateEventPage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
+    <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
+      <Header />
+
       <GroupHeader
         name={group.name}
         iconUrl={group.iconUrl}
@@ -205,6 +209,7 @@ export default function CreateEventPage() {
             戻る
         </Link>
       </Button>
+      <Footer/>
     </main>
   
   );

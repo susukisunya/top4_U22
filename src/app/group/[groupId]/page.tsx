@@ -17,6 +17,8 @@ import {
 import { Copy } from "lucide-react";
 import { Plus } from "lucide-react";
 import { GroupHeader } from "@/components/card/group-header";
+import Header from "@/components/homepage/Header";
+import Footer from "@/components/homepage/Footer";
 
 type Group = {
   id: string;
@@ -86,7 +88,8 @@ export default async function GroupPage({ params }: Props) {
   );
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
+    <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
+      <Header />
 
       {/* グループ名 */}
       <div className="mb-4 flex items-center gap-4">
@@ -275,6 +278,7 @@ export default async function GroupPage({ params }: Props) {
           ))}
         </div>
       </section>
+      <Footer/>
   </main>
   );
 }

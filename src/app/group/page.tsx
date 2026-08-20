@@ -3,7 +3,8 @@ import { GroupCard } from "@/components/card/group-card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-
+import Header from "@/components/homepage/Header";
+import Footer from "@/components/homepage/Footer";
 
 type Group = {
   id: string;
@@ -36,7 +37,9 @@ const groups: Group[] = [
 
 export default function GroupListPage() {
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
+    <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
+      <Header />
+
       <h1 className="mb-6 text-3xl font-bold">
         グループ
       </h1>
@@ -63,6 +66,8 @@ export default function GroupListPage() {
           グループ作成
         </Link>
       </Button>
+
+      <Footer/>
     </main>
   );
 }

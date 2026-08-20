@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useParams } from "next/navigation";
 import { GroupHeader } from "@/components/card/group-header";
+import Header from "@/components/homepage/Header";
 
 type Group = {
   id: string;
@@ -115,7 +116,8 @@ const handleChangeDisplayName = () => {
 };
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
+    <main className="mx-auto w-full max-w-2xl p-6 pt-20">
+      <Header/>
 
       {/* グループ情報 */}
       <GroupHeader

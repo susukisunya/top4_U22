@@ -6,7 +6,7 @@ import Footer from "@/components/homepage/Footer";
 
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-screen w-[390px] flex-col bg-white border">
+    <main className="mx-auto flex min-h-screen w-[390px] flex-col bg-white border pt-20 pb-20">
       <Header />
 
       <div className="p-4 space-y-6">

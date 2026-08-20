@@ -3,14 +3,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +16,8 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
+import Header from "@/components/homepage/Header";
+import Footer from "@/components/homepage/Footer";
 
 export default function CreateGroupPage() {
   const [groupName, setGroupName] = useState("");
@@ -47,7 +47,9 @@ export default function CreateGroupPage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
+    <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
+      <Header />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
@@ -129,6 +131,7 @@ export default function CreateGroupPage() {
           グループ一覧に戻る
         </Link>
       </Button>
+      <Footer/>
     </main>
   );
 }

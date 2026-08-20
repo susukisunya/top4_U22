@@ -3,6 +3,8 @@ import { MissionCard } from '@/components/card/missionCard'
 import { MapCard } from '@/components/card/mapCard'
 import { RouteDeadlineCard } from '@/components/card/routeDeadlineCard'
 import { ArrivalReportCard } from '@/components/card/ArrivalReportCard'
+import Header from "@/components/homepage/Header";
+import Footer from "@/components/homepage/Footer";
 
 interface Member {
   id: string
@@ -39,8 +41,8 @@ const membersData: Member[] = [
 export default function LateGuardApp() {
 
   return (
-    <div className="max-w-md mx-auto bg-[#FBF9F6] min-h-screen text-stone-800 font-sans p-4 space-y-4 pb-8 shadow-md">
-      
+    <div className="max-w-md mx-auto bg-[#FBF9F6] min-h-screen text-stone-800 font-sans p-4 space-y-4 pb-8 shadow-md pt-20 pb-20">
+      <Header />
       <MissionCard />
 
       <MapCard location="Shinjuku East Exit, Tokyo" label="TARGET" />
@@ -60,6 +62,7 @@ export default function LateGuardApp() {
             />
           ))}
         </div>
+        <Footer/>
       </div>
   )
 }

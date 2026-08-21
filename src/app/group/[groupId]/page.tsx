@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/dialog";
 import { Copy } from "lucide-react";
 import { Plus } from "lucide-react";
+import { UsersRound } from "lucide-react";
+import { UserPlus } from "lucide-react";
+import { CalendarPlus } from "lucide-react";
 import { GroupHeader } from "@/components/card/group-header";
 import Header from "@/components/homepage/Header";
 import Footer from "@/components/homepage/Footer";
@@ -120,7 +123,12 @@ export default async function GroupPage({ params }: Props) {
               <AccordionTrigger
                 className="px-4 py-2 bg-gray-200 text-lg font-semibold hover:bg-gray-200/60"
               >
-                メンバー一覧（{users.length}人）
+                <div className="flex items-center gap-2">
+                  <UsersRound className="h-5 w-5" />
+                  <span>
+                    メンバー一覧（{users.length}人）
+                  </span>
+                </div>
               </AccordionTrigger>
 
               <AccordionContent className="px-2 pt-3 pb-2">
@@ -155,7 +163,8 @@ export default async function GroupPage({ params }: Props) {
           <Button
             className="mb-4 w-full bg-gray-300 py-6 text-base font-semibold text-black shadow-sm hover:bg-gray-200"
           >
-            ＋ メンバーを招待
+            <UserPlus className="mr-2 !h-6 !w-6" />
+            メンバーを招待
           </Button>
         </DialogTrigger>
 
@@ -214,7 +223,8 @@ export default async function GroupPage({ params }: Props) {
         className="mb-6 w-full bg-gray-300 py-6 text-base font-semibold text-black shadow-sm hover:bg-gray-200"
       >
         <Link href={`/group/${groupId}/createEvent`}>
-          ＋ 予定を作成
+          <CalendarPlus className="mr-2 !h-6 !w-6" />
+          予定を作成
         </Link>
       </Button>
 

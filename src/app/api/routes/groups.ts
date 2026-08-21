@@ -13,11 +13,14 @@ groupsRoute.get('/', async (c) => {
         name: true,
         iconUrl: true,
         createdAt: true,
+        updatedAt: true,
         members: {
           select: {
             displayName: true,
             lateCount: true,
             joinedAt: true,
+            createdAt: true,
+            updatedAt: true,
             user: {
               select: {
                 id: true,

@@ -14,8 +14,8 @@ usersRoute.get('/', async (c) => {
         name: true,
         icon: true,
         // スキーマ上のフィールド名は createAt / updateAt（Group の createdAt とは名前が異なる点に注意）
-        createAt: true,
-        updateAt: true,
+        createdAt: true,
+        updatedAt: true,
         groupMembers: {
           select: {
             displayName: true,
@@ -27,12 +27,13 @@ usersRoute.get('/', async (c) => {
                 name: true,
                 iconUrl: true,
                 createdAt: true,
+                updatedAt: true,
               },
             },
           },
         },
       },
-      orderBy: { createAt: 'desc' },
+      orderBy: { createdAt: 'desc' },
     })
 
     return c.json(users)

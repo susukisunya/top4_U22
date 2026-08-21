@@ -42,3 +42,43 @@ usersRoute.get('/', async (c) => {
     return c.json({ error: 'ユーザー一覧の取得に失敗しました' }, 500)
   }
 })
+
+// POST /api/users
+// ユーザーを作成する。name / icon / password が必要。
+usersRoute.post('/', async (c) => {
+  try {
+    const body = await c.req.json<{
+      name?: string
+      icon?: string
+      password?: string
+    }>()
+
+    if (!body.name || !body.password) {
+      return c.json(
+        { error: 'name と password は必須です' },
+        400
+      )
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        name: body.name,
+        icon: body.icon ?? '',
+        password: body.password,
+      },
+      select: {
+        id: true,
+        name: true,
+        icon: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
+
+    // パスワードをレスポンスに含めない
+    return c.json(user, 201)
+  } catch (error) {
+    console.error('ユーザーの作成に失敗しました:', error)
+    return c.json({ error: 'ユーザーの作成に失敗しました' }, 500)
+  }
+})

@@ -19,12 +19,12 @@ datasource db {
 }
 
 model User {
-  id       String   @id @default(cuid())
-  name     String
-  icon     String
-  password String
-  createAt DateTime @default(now())
-  updateAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  icon      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   groupMembers GroupMember[]
   eventMembers EventMember[]
@@ -35,6 +35,7 @@ model Group {
   name      String
   iconUrl   String
   createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   members   GroupMember[]
   events    Event[]
 }
@@ -47,13 +48,16 @@ model Event {
   location    String?
   meetingTime DateTime
   createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   group       Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
   members     EventMember[]
 }
 
 model GroupMember {
-  userId  String
-  groupId String
+  userId    String
+  groupId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   lateCount   Int      @default(0) // グループ内での遅刻回数
   displayName String? // グループ内での表示名（未設定ならUser.nameを使用可能）
@@ -68,8 +72,10 @@ model GroupMember {
 }
 
 model EventMember {
-  userId  String
-  eventId String
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   isAttending Boolean   @default(true)
   meetingTime DateTime? // ユーザーごとの集合時間（※全体と個別で分ける場合）

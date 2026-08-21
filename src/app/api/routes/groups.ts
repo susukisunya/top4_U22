@@ -135,3 +135,42 @@ groupsRoute.get('/:id/members', async (c) => {
     return c.json({ error: 'グループメンバーの取得に失敗しました' }, 500)
   }
 })
+
+// POST /api/groups
+// グループを作成する。name / iconUrl が必要。
+groupsRoute.post('/', async (c) => {
+  try {
+    const body = await c.req.json<{
+      name?: string
+      iconUrl?: string
+    }>()
+
+    if (!body.name) {
+      return c.json({ error: 'name は必須です' }, 400)
+    }
+
+    const group = await prisma.group.create({
+      data: {
+        name: body.name,
+        iconUrl: body.iconUrl ?? '',
+      },
+      select: {
+        id: true,
+        name: true,
+        iconUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            members: true,
+          },
+        },
+      },
+    })
+
+    return c.json(group, 201)
+  } catch (error) {
+    console.error('グループの作成に失敗しました:', error)
+    return c.json({ error: 'グループの作成に失敗しました' }, 500)
+  }
+})

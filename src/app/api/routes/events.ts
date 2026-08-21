@@ -100,3 +100,49 @@ eventsRoute.get('/:id', async (c) => {
     return c.json({ error: 'イベントの取得に失敗しました' }, 500)
   }
 })
+
+// POST /api/events
+// イベントを作成する。groupId / title / meetingTime が必要。
+eventsRoute.post('/', async (c) => {
+  try {
+    const body = await c.req.json<{
+      groupId?: string
+      title?: string
+      description?: string
+      location?: string
+      meetingTime?: string
+    }>()
+
+    if (!body.groupId || !body.title || !body.meetingTime) {
+      return c.json(
+        { error: 'groupId と title と meetingTime は必須です' },
+        400
+      )
+    }
+
+    const event = await prisma.event.create({
+      data: {
+        groupId: body.groupId,
+        title: body.title,
+        description: body.description ?? null,
+        location: body.location ?? null,
+        meetingTime: new Date(body.meetingTime),
+      },
+      select: {
+        id: true,
+        groupId: true,
+        title: true,
+        description: true,
+        location: true,
+        meetingTime: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
+
+    return c.json(event, 201)
+  } catch (error) {
+    console.error('イベントの作成に失敗しました:', error)
+    return c.json({ error: 'イベントの作成に失敗しました' }, 500)
+  }
+})

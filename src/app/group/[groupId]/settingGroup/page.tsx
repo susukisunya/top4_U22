@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/drawer";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useParams } from "next/navigation";
+import { CircleEllipsis, SquarePen, ImagePlus, UserPen, Bell, LogOut} from "lucide-react";
 import { GroupHeader } from "@/components/card/group-header";
 import Header from "@/components/homepage/Header";
 
@@ -129,7 +131,8 @@ const handleChangeDisplayName = () => {
       {/* グループ設定 */}
       <Card>
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="flex items-center text-2xl">
+            <CircleEllipsis className="mr-2 !h-7 !w-7" />
             グループ設定
           </CardTitle>
         </CardHeader>
@@ -143,7 +146,8 @@ const handleChangeDisplayName = () => {
                 type="button"
                 className="flex w-full items-center justify-between border-t px-6 py-4 text-left transition-colors hover:bg-muted"
               >
-                <span className="font-medium">
+                <span className="flex font-medium">
+                  <SquarePen className="mr-2 !h-6 !w-6" />
                   グループ名の変更
                 </span>
 
@@ -204,7 +208,8 @@ const handleChangeDisplayName = () => {
                 type="button"
                 className="flex w-full items-center justify-between border-t px-6 py-4 text-left transition-colors hover:bg-muted"
               >
-                <span className="font-medium">
+                <span className="flex font-medium">
+                  <ImagePlus className="mr-2 !h-6 !w-6" />
                   グループアイコンの変更
                 </span>
 
@@ -289,7 +294,8 @@ const handleChangeDisplayName = () => {
                 type="button"
                 className="flex w-full items-center justify-between border-t px-6 py-4 text-left transition-colors hover:bg-muted"
               >
-                <span className="font-medium">
+                <span className="flex font-medium">
+                  <UserPen className="mr-2 !h-6 !w-6" />
                   表示名の設定
                 </span>
 
@@ -402,7 +408,8 @@ const handleChangeDisplayName = () => {
                 type="button"
                 className="flex w-full items-center justify-between border-t px-6 py-4 text-left transition-colors hover:bg-muted"
               >
-                <span className="font-medium">
+                <span className="flex font-medium">
+                  <Bell className="mr-2 !h-6 !w-6" />
                   通知の設定
                 </span>
 
@@ -446,7 +453,8 @@ const handleChangeDisplayName = () => {
                 type="button"
                 className="flex w-full items-center justify-between border-t px-6 py-4 text-left transition-colors hover:bg-red-50"
               >
-                <span className="font-medium text-red-500">
+                <span className="flex font-medium text-red-500">
+                  <LogOut className="mr-2 !h-6 !w-6" />
                   グループを退会
                 </span>
 
@@ -473,9 +481,11 @@ const handleChangeDisplayName = () => {
                   はい
                 </Button>
                 
-                <Button variant="outline">
-                  いいえ
-                </Button>
+                <DialogClose asChild>
+                  <Button variant="outline">
+                    いいえ
+                  </Button>
+                </DialogClose>
               </DialogFooter>
             </DialogContent>
           </Dialog>

@@ -59,7 +59,7 @@ export default function GroupListPage() {
       {/* グループ作成ボタン */}
       <Button
         asChild
-        className="fixed bottom-6 right-6 rounded-full bg-red-700 shadow-lg hover:bg-red-600"
+        className="fixed bottom-24 right-6 rounded-full bg-red-700 shadow-lg hover:bg-red-600"
       >
         <Link href="/group/createGroup">
           <Plus className="h-5 w-5" />

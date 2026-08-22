@@ -1,8 +1,8 @@
-//ユーザー新規作成
+//初回登録画面
 "use client";
 
 import { useState } from "react";
-
+import { signIn } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -17,9 +17,8 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 
-export default function CreateUserPage() {
+export default function ProfilePage() {
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [iconUrl, setIconUrl] = useState("");
 
   return (
@@ -27,26 +26,42 @@ export default function CreateUserPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center text-2xl">
-            アカウント新規作成
+            アカウント登録
           </CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-6">
+
+          
+
           {/* アイコン */}
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-4">
             <Avatar className="h-24 w-24">
               <AvatarImage src={iconUrl} />
+
               <AvatarFallback className="text-2xl">
-                {username ? username.slice(0, 2) : "?"}
+                {username
+                  ? username.slice(0, 2)
+                  : "？"}
               </AvatarFallback>
             </Avatar>
 
-            <Input
-              type="text"
-              value={iconUrl}
-              onChange={(e) => setIconUrl(e.target.value)}
-              placeholder="アイコン画像URL"
-            />
+            <div className="w-full space-y-2">
+              <label
+                htmlFor="icon"
+                className="text-sm font-medium"
+              >
+                アイコン
+              </label>
+
+              <Input
+                id="icon"
+                type="text"
+                value={iconUrl}
+                onChange={(e) => setIconUrl(e.target.value)}
+                placeholder="アイコン画像URL"
+              />
+            </div>
           </div>
 
           {/* ユーザーネーム */}
@@ -67,31 +82,19 @@ export default function CreateUserPage() {
             />
           </div>
 
-          {/* パスワード */}
-          <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium"
-            >
-              パスワード
-            </label>
+          {/* 説明 */}
+          <p className="text-center text-sm text-muted-foreground">
+            ユーザーネームとアイコンは後から変更可能です
+          </p>
 
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="パスワードを入力"
-            />
-          </div>
-
-          {/* アカウント作成 */}
+          {/* 登録ボタン */}
           <Button
             type="button"
             className="w-full bg-gray-700 py-6 text-base font-semibold hover:bg-gray-600"
           >
-            アカウント作成
+            登録する
           </Button>
+
         </CardContent>
       </Card>
     </main>

@@ -23,7 +23,7 @@ function resolveDatabaseUrl(url: string | undefined): string | undefined {
   return `file:${path.resolve(SCHEMA_DIR, filePath)}`
 }
 
-const datasourceUrl = resolveDatabaseUrl(process.env.DEV_DATABASE_URL)
+const datasourceUrl = resolveDatabaseUrl(process.env.DATABASE_URL)
 
 export const prisma =
   globalForPrisma.prisma ?? new PrismaClient({ datasourceUrl })

@@ -14,8 +14,8 @@ generator fabbrica {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DEV_DATABASE_URL") //ここのエラーは気にしなくてok. 最新バージョンを使えと警告されてるだけ
+  provider = "postgresql"
+  url      = env("DATABASE_URL") //ここのエラーは気にしなくてok. 最新バージョンを使えと警告されてるだけ
 }
 
 model User {

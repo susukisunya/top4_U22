@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { prisma } from '@/lib/prisma'
+import { Param } from '@prisma/client/runtime/library'
 
 // GET /api/users
 // ユーザー一覧と、各ユーザーが所属するグループの情報を取得する。
@@ -13,7 +14,6 @@ usersRoute.get('/', async (c) => {
         id: true,
         name: true,
         icon: true,
-        // スキーマ上のフィールド名は createAt / updateAt（Group の createdAt とは名前が異なる点に注意）
         createdAt: true,
         updatedAt: true,
         groupMembers: {
@@ -42,7 +42,44 @@ usersRoute.get('/', async (c) => {
     return c.json({ error: 'ユーザー一覧の取得に失敗しました' }, 500)
   }
 })
+//特定のユーザの情報を取得するapi
+usersRoute.get('/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
 
+    const users = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        icon: true,
+        createdAt: true,
+        updatedAt: true,
+        groupMembers: {
+          select: {
+            displayName: true,
+            lateCount: true,
+            joinedAt: true,
+            group: {
+              select: {
+                id: true,
+                name: true,
+                iconUrl: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    return c.json(users)
+  } catch (error) {
+    console.error('ユーザ情報の取得に失敗しました:', error)
+    return c.json({ error: 'ユーザ情報の取得に失敗しました' }, 500)
+  }
+})
 // POST /api/users
 // ユーザーを作成する。name / icon / password が必要。
 usersRoute.post('/', async (c) => {

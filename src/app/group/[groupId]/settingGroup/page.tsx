@@ -31,6 +31,7 @@ import { useParams } from "next/navigation";
 import { CircleEllipsis, SquarePen, ImagePlus, UserPen, Bell, LogOut} from "lucide-react";
 import { GroupHeader } from "@/components/card/group-header";
 import Header from "@/components/homepage/Header";
+import Footer from "@/components/homepage/Footer";
 
 type Group = {
   id: string;
@@ -118,7 +119,7 @@ const handleChangeDisplayName = () => {
 };
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6 pt-20">
+    <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
       <Header/>
 
       {/* グループ情報 */}
@@ -504,6 +505,7 @@ const handleChangeDisplayName = () => {
         </Link>
       </Button>
 
+      <Footer/>
     </main>
   );
 }

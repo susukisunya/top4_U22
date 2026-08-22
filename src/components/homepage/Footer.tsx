@@ -1,38 +1,66 @@
+//フッター
 "use client";
 
 import { Home, User, Settings,  } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
-    const router = useRouter();
+	const pathname = usePathname();
+
+	  const isHome = pathname === "/";
+		const isGroup = pathname.startsWith("/group");
+		const isSetting = pathname.startsWith("/settingUser");
   return (
-    <footer className="fixed bottom-0 left-0 z-50 w-full flex justify-between items-center border-t-2 border-black px-4 py-3">
-        <button onClick={() => router.push("/")}>
-        <div className="flex flex-col items-center">
-            <Home size={22} />
-                <h1 className="text-xs text-gray-600">
-                    ホーム画面
-                </h1>
-        </div>
-        </button>
+    <footer className="fixed bottom-0 left-0 z-50 w-full flex justify-center gap-20 items-center border-t bg-white px-4 py-3 shadow-md">
+    	{/* ホーム */}
+      <Link
+        href="/"
+        className={`flex flex-col items-center ${
+          isHome ? "font-bold text-black" : "text-gray-600"
+        }`}
+      >
+        <Home
+          size={22}
+          strokeWidth={isHome ? 3 : 2}
+        />
+        <h1 className="text-xs">
+          ホーム
+        </h1>
+      </Link>
 
-        <button onClick={() => router.push("/group/aaaa")}>
-        <div className="flex flex-col items-center">
-            <User size={22} />
-                <h1 className="text-xs text-gray-600">
-                    グループ
-                </h1>
-        </div>
-        </button>
+      {/* グループ */}
+      <Link
+        href="/group"
+        className={`flex flex-col items-center ${
+          isGroup ? "font-bold text-black" : "text-gray-600"
+        }`}
+      >
+        <User
+          size={22}
+          strokeWidth={isGroup ? 3 : 2}
+        />
+        <h1 className="text-xs">
+          グループ
+        </h1>
+      </Link>
 
-        <button onClick={() => router.push("/settingUser")}>
-        <div className="flex flex-col items-center">
-            <Settings size={22} />
-                <h1 className="text-xs text-gray-600">
-                    設定
-                </h1>
-        </div>
-        </button>
+      {/* 設定 */}
+      <Link
+        href="/settingUser"
+        className={`flex flex-col items-center ${
+          isSetting ? "font-bold text-black" : "text-gray-600"
+        }`}
+      >
+        <Settings
+          size={22}
+          strokeWidth={isSetting ? 3 : 2}
+        />
+        <h1 className="text-xs">
+          設定
+        </h1>
+      </Link>
+
 
     </footer>
   );

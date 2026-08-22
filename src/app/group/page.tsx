@@ -41,7 +41,7 @@ export default function GroupListPage() {
       <Header />
 
       <h1 className="mb-6 text-3xl font-bold">
-        グループ
+        所属グループ一覧
       </h1>
 
       <div className="space-y-4">

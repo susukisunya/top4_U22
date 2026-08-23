@@ -33,7 +33,7 @@ eventsRoute.get('/', async (c) => {
               select: {
                 id: true,
                 name: true,
-                icon: true,
+                image: true,
               },
             },
           },
@@ -82,7 +82,7 @@ eventsRoute.get('/:id', async (c) => {
               select: {
                 id: true,
                 name: true,
-                icon: true,
+                image: true,
               },
             },
           },

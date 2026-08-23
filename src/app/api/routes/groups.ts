@@ -25,7 +25,7 @@ groupsRoute.get('/', async (c) => {
               select: {
                 id: true,
                 name: true,
-                icon: true,
+                image: true,
               },
             },
           },
@@ -78,7 +78,7 @@ groupsRoute.get('/:id', async (c) => {
               select: {
                 id: true,
                 name: true,
-                icon: true,
+                image: true,
               },
             },
           },
@@ -122,7 +122,7 @@ groupsRoute.get('/:id/members', async (c) => {
           select: {
             id: true,
             name: true,
-            icon: true,
+            image: true,
           },
         },
       },

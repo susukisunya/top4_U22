@@ -1,8 +1,11 @@
 // グループ一覧画面
-import { GroupCard } from "@/components/card/group-card";
-import { Button } from "@/components/ui/button";
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { GroupCard } from "@/components/card/group-card";
 import Header from "@/components/homepage/Header";
 import Footer from "@/components/homepage/Footer";
 
@@ -13,29 +16,50 @@ type Group = {
   memberCount: number;
 };
 
-// APIから取得する想定の仮データ
-const groups: Group[] = [
-  {
-    id: "group-1",
-    name: "情報工学科A班",
-    iconUrl: "",
-    memberCount: 5,
-  },
-  {
-    id: "group-2",
-    name: "情報工学科B班",
-    iconUrl: "",
-    memberCount: 8,
-  },
-  {
-    id: "group-3",
-    name: "ゲーム制作班",
-    iconUrl: "",
-    memberCount: 6,
-  },
-];
-
 export default function GroupListPage() {
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // グループ一覧を取得
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await fetch("/api/groups");
+
+        if (!response.ok) {
+          throw new Error("グループ一覧の取得に失敗しました");
+        }
+
+        const data = await response.json();
+
+                // APIのデータを画面用のデータに変換
+        const formattedGroups: Group[] = data.map(
+          (group: {
+            id: string;
+            name: string;
+            iconUrl?: string;
+            members: unknown[];
+          }) => ({
+            id: group.id,
+            name: group.name,
+            iconUrl: group.iconUrl,
+            memberCount: group.members.length,
+          })
+        );
+
+        setGroups(formattedGroups);
+      } catch (error) {
+        console.error(error);
+        setError("グループ一覧の取得に失敗しました");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroups();
+  }, []);
+
   return (
     <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
       <Header />
@@ -44,17 +68,41 @@ export default function GroupListPage() {
         所属グループ一覧
       </h1>
 
-      <div className="space-y-4">
-        {groups.map((group) => (
-          <GroupCard
-            key={group.id}
-            id={group.id}
-            name={group.name}
-            iconUrl={group.iconUrl}
-            memberCount={group.memberCount}
-          />
-        ))}
-      </div>
+      {/* 読み込み中 */}
+      {loading && (
+        <p className="text-center text-gray-500">
+          グループを読み込んでいます...
+        </p>
+      )}
+
+      {/* エラー */}
+      {error && (
+        <p className="text-center text-red-500">
+          {error}
+        </p>
+      )}
+
+      {/* グループ一覧 */}
+      {!loading && !error && (
+        <div className="space-y-4">
+          {groups.map((group) => (
+            <GroupCard
+              key={group.id}
+              id={group.id}
+              name={group.name}
+              iconUrl={group.iconUrl}
+              memberCount={group.memberCount}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* グループがない場合 */}
+      {!loading && !error && groups.length === 0 && (
+        <p className="text-center text-gray-500">
+          所属しているグループはありません。
+        </p>
+      )}
 
       {/* グループ作成ボタン */}
       <Button

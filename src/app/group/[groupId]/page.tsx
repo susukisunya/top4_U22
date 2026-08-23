@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
-import Link from "next/link";
 import { MoreVertical } from "lucide-react";
 import {
   Dialog,
@@ -14,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 import { Copy } from "lucide-react";
 import { Plus } from "lucide-react";
 import { UsersRound } from "lucide-react";
@@ -23,67 +23,90 @@ import { GroupHeader } from "@/components/card/group-header";
 import Header from "@/components/homepage/Header";
 import Footer from "@/components/homepage/Footer";
 
-type Group = {
-  id: string;
-  name: string;
-  iconUrl?: string;
-};
-
 type Props = {
   params: Promise<{
     groupId: string;
   }>;
 };
 
-const group: Group = {
-  id: "group-1",
-  name: "情報工学科A班",
-  iconUrl: "",
-};
-
-type User = {
+// APIから取得するグループの型
+type Group = {
   id: string;
-  username: string;
-  iconUrl?: string;
-  lateCount: number;
-};
+  name: string;
+  iconUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
 
-// APIから取得する想定の仮データ
-const users: User[] = [
-  {
-    id: "1",
-    username: "太郎",
-    iconUrl: "",
-    lateCount: 2,
-  },
-  {
-    id: "2",
-    username: "次郎",
-    iconUrl: "",
-    lateCount: 5,
-  },
-  {
-    id: "3",
-    username: "花子",
-    iconUrl: "",
-    lateCount: 1,
-  },
-  {
-    id: "4",
-    username: "三郎",
-    iconUrl: "",
-    lateCount: 9,
-  },
-  {
-    id: "5",
-    username: "四郎",
-    iconUrl: "",
-    lateCount: 3,
-  },
-];
+  _count: {
+    members: number;
+  };
+
+  members: {
+    userId: string;
+    displayName: string | null;
+    lateCount: number;
+    joinedAt: string;
+
+    user: {
+      id: string;
+      name: string | null;
+      icon: string | null;
+    };
+  }[];
+  
+  events: {
+    id: string;
+    title: string;
+    meetingTime: string;
+  }[];
+};
 
 export default async function GroupPage({ params }: Props) {
   const { groupId } = await params;
+
+  // APIからグループ情報を取得
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/groups/${groupId}`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  // グループが取得できなかった場合
+  if (!response.ok) {
+      return (
+      <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
+        <Header />
+
+        <h1 className="text-2xl font-bold">
+          グループが見つかりません
+        </h1>
+
+        <Button
+          variant="outline"
+          asChild
+          className="mt-6"
+        >
+          <Link href="/group">
+            グループ一覧に戻る
+          </Link>
+        </Button>
+
+        <Footer />
+      </main>
+    );
+  }
+
+  const group: Group = await response.json();
+
+  // APIのmembersを画面表示用に変換
+  const users = group.members.map((member) => ({
+    id: member.user.id,
+    username:
+      member.displayName ?? member.user.name ?? "名前未設定",
+    iconUrl: member.user.icon ?? "",
+    lateCount: member.lateCount,
+  }));
 
   // 遅刻回数が少ない順に並び替え
   const ranking = [...users].sort(
@@ -98,8 +121,8 @@ export default async function GroupPage({ params }: Props) {
       <div className="mb-4 flex items-center gap-4">
         <GroupHeader
           name={group.name}
-          iconUrl={group.iconUrl}
-          memberCount={users.length}
+          iconUrl={group.iconUrl ?? ""}
+          memberCount={group._count.members}
         />
 
         {/* グループ設定 */}
@@ -110,7 +133,7 @@ export default async function GroupPage({ params }: Props) {
           className="ml-auto"
         >
           <Link href={`/group/${groupId}/settingGroup`} aria-label="グループ設定">
-            <MoreVertical className="h-5 w-5" />
+            <MoreVertical className="!h-6 !w-6" />
           </Link>
         </Button>
       </div>
@@ -125,6 +148,7 @@ export default async function GroupPage({ params }: Props) {
               >
                 <div className="flex items-center gap-2">
                   <UsersRound className="h-5 w-5" />
+
                   <span>
                     メンバー一覧（{users.length}人）
                   </span>
@@ -141,6 +165,7 @@ export default async function GroupPage({ params }: Props) {
                       <div className="flex items-center gap-4">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={user.iconUrl} />
+
                           <AvatarFallback>
                             {user.username.slice(0, 2)}
                           </AvatarFallback>
@@ -288,6 +313,7 @@ export default async function GroupPage({ params }: Props) {
           ))}
         </div>
       </section>
+      
       <Footer/>
   </main>
   );

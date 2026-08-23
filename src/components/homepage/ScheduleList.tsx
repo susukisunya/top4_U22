@@ -10,8 +10,8 @@ type EventMember = {
   meetingTime: string | null;
   user: {
     id: string;
-    name: string;
-    icon: string;
+    name: string | null;
+    image: string | null;
   };
 };
 

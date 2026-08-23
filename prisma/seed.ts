@@ -13,12 +13,12 @@ async function main() {
 
     // 1. ダミーユーザーの作成 (10人)
     const users = await Promise.all(
-        Array.from({ length: 10 }).map(() =>
+        Array.from({ length: 10 }).map((_, i) =>
             prisma.user.create({
                 data: {
                     name: faker.person.fullName(),
-                    icon: faker.image.avatar(),
-                    password: faker.internet.password({ length: 12 }),
+                    email: `user${i + 1}@example.com`,
+                    image: faker.image.avatar(),
                 },
             })
         )

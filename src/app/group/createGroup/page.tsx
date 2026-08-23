@@ -39,11 +39,37 @@ export default function CreateGroupPage() {
   };
 
   // グループ作成
-  const handleCreate = () => {
-    console.log("グループ名:", groupName);
-    console.log("アイコン:", iconUrl);
+  const handleCreate = async () => {
+    if (!groupName.trim()) {
+      return;
+    }
 
-    // 後でAPIに送信する
+    try {
+      const response = await fetch("/api/groups", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: groupName.trim(),
+          iconUrl: "",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("グループの作成に失敗しました");
+      }
+
+      const createdGroup = await response.json();
+
+      console.log("作成されたグループ:", createdGroup);
+
+      // グループ一覧へ戻る
+      window.location.href = "/group";
+    } catch (error) {
+      console.error(error);
+      alert("グループの作成に失敗しました");
+    }
   };
 
   return (

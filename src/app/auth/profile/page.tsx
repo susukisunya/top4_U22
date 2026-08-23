@@ -2,7 +2,8 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -18,8 +19,101 @@ import {
 } from "@/components/ui/avatar";
 
 export default function ProfilePage() {
-  const [username, setUsername] = useState("");
-  const [iconUrl, setIconUrl] = useState("");
+  const { data: session, status } = useSession();
+
+  // セッション確認中
+  if (status === "loading") {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+        <p className="text-sm text-muted-foreground">読み込み中...</p>
+      </main>
+    );
+  }
+
+  // 未ログインならGoogleログインを促す
+  if (status === "unauthenticated") {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center text-2xl">
+              アカウント登録
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <p className="mb-6 text-center text-sm text-muted-foreground">
+              登録にはまずGoogleでログインしてください
+            </p>
+
+            <Button
+              type="button"
+              onClick={() =>
+                signIn("google", {
+                  callbackUrl: "/auth/profile",
+                })
+              }
+              className="w-full py-6 text-base font-semibold"
+            >
+              Googleでログイン
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
+  // ログイン済み：Googleアカウントの情報を初期値にして登録フォームを表示する
+  return (
+    <ProfileForm
+      defaultName={session?.user?.name ?? ""}
+      defaultIcon={session?.user?.image ?? ""}
+    />
+  );
+}
+
+function ProfileForm({
+  defaultName,
+  defaultIcon,
+}: {
+  defaultName: string;
+  defaultIcon: string;
+}) {
+  const router = useRouter();
+  const [username, setUsername] = useState(defaultName);
+  const [iconUrl, setIconUrl] = useState(defaultIcon);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // DBにユーザーネームとアイコンを保存する
+  const handleRegister = async () => {
+    if (!username.trim()) return;
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/users/me", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: username.trim(),
+          icon: iconUrl,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`/api/users/me の更新に失敗しました: ${res.status}`);
+      }
+
+      router.push("/");
+    } catch (e) {
+      console.error("ユーザー登録に失敗しました:", e);
+      setError("ユーザー登録に失敗しました。もう一度お試しください。");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
@@ -87,12 +181,18 @@ export default function ProfilePage() {
             ユーザーネームとアイコンは後から変更可能です
           </p>
 
+          {error && (
+            <p className="text-center text-sm text-red-500">{error}</p>
+          )}
+
           {/* 登録ボタン */}
           <Button
             type="button"
+            onClick={handleRegister}
+            disabled={isSubmitting || !username.trim()}
             className="w-full bg-gray-700 py-6 text-base font-semibold hover:bg-gray-600"
           >
-            登録する
+            {isSubmitting ? "登録中..." : "登録する"}
           </Button>
 
         </CardContent>

@@ -19,15 +19,62 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  icon      String
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
+  accounts     Account[]
+  sessions     Session[]
   groupMembers GroupMember[]
   eventMembers EventMember[]
+}
+
+// Auth.jsがOAuth連携情報を保存するためのモデル
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 同一プロバイダーアカウントの重複リンクを防ぐ
+  @@unique([provider, providerAccountId])
+}
+
+// Auth.js のデータベースセッション用モデル
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// メールマジックリンク用トークンのモデル
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Group {
@@ -63,11 +110,9 @@ model GroupMember {
   displayName String? // グループ内での表示名（未設定ならUser.nameを使用可能）
   joinedAt    DateTime @default(now())
 
-  // リレーション
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
-  // 複合主キー
   @@id([userId, groupId])
 }
 
@@ -78,12 +123,10 @@ model EventMember {
   updatedAt DateTime @updatedAt
 
   isAttending Boolean   @default(true)
-  meetingTime DateTime? // ユーザーごとの集合時間（※全体と個別で分ける場合）
+  meetingTime DateTime?
 
-  // リレーション
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  // 複合主キー
   @@id([userId, eventId])
 }

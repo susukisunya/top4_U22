@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useParams } from "next/navigation";
 import { GroupHeader } from "@/components/card/group-header";
+import { DestinationSetterCard } from "@/components/card/destinationSetterCard";
 import Header from "@/components/homepage/Header";
 import Footer from "@/components/homepage/Footer";
 
@@ -111,15 +112,7 @@ export default function CreateEventPage() {
           </div>
           {/* 集合場所 */}
           <div className="mb-6">
-            <h2 className="mb-2 text-lg font-semibold">
-              集合場所
-            </h2>
-
-            <Input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="集合場所を入力"
-            />
+            <DestinationSetterCard />
           </div>
 
           {/* 詳細 */}
@@ -159,19 +152,17 @@ export default function CreateEventPage() {
                     key={user.id}
                     type="button"
                     onClick={() => toggleMember(user.id)}
-                    className={`flex w-full items-center gap-4 px-4 py-3 text-left transition-colors ${
-                      isSelected
-                        ? "bg-gray-200"
-                        : "bg-gray-100 hover:bg-gray-200"
-                    }`}
+                    className={`flex w-full items-center gap-4 px-4 py-3 text-left transition-colors ${isSelected
+                      ? "bg-gray-200"
+                      : "bg-gray-100 hover:bg-gray-200"
+                      }`}
                   >
                     {/* 選択状態を表す丸 */}
                     <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${
-                        isSelected
-                          ? "border-green-400 bg-green-400"
-                          : "border-gray-300 bg-white"
-                      }`}
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${isSelected
+                        ? "border-green-400 bg-green-400"
+                        : "border-gray-300 bg-white"
+                        }`}
                     >
                       {isSelected && (
                         <span className="text-sm font-bold text-white">
@@ -206,11 +197,11 @@ export default function CreateEventPage() {
 
       <Button variant="outline" asChild>
         <Link href={`/group/${groupId}`}>
-            戻る
+          戻る
         </Link>
       </Button>
-      <Footer/>
+      <Footer />
     </main>
-  
+
   );
 }

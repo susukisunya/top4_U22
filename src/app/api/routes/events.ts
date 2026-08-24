@@ -13,7 +13,6 @@ eventsRoute.get('/', async (c) => {
         groupId: true,
         title: true,
         description: true,
-        location: true,
         meetingTime: true,
         createdAt: true,
         updatedAt: true,
@@ -62,7 +61,6 @@ eventsRoute.get('/:id', async (c) => {
         groupId: true,
         title: true,
         description: true,
-        location: true,
         meetingTime: true,
         createdAt: true,
         updatedAt: true,
@@ -109,7 +107,6 @@ eventsRoute.post('/', async (c) => {
       groupId?: string
       title?: string
       description?: string
-      location?: string
       meetingTime?: string
     }>()
 
@@ -125,7 +122,6 @@ eventsRoute.post('/', async (c) => {
         groupId: body.groupId,
         title: body.title,
         description: body.description ?? null,
-        location: body.location ?? null,
         meetingTime: new Date(body.meetingTime),
       },
       select: {
@@ -133,7 +129,6 @@ eventsRoute.post('/', async (c) => {
         groupId: true,
         title: true,
         description: true,
-        location: true,
         meetingTime: true,
         createdAt: true,
         updatedAt: true,

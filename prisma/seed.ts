@@ -7,8 +7,12 @@ async function main() {
     // 既存データのクリーンアップ（外部キー制約に配慮した順序）
     await prisma.eventMember.deleteMany();
     await prisma.event.deleteMany();
+    await prisma.destination.deleteMany();
     await prisma.groupMember.deleteMany();
     await prisma.group.deleteMany();
+    await prisma.account.deleteMany();
+    await prisma.session.deleteMany();
+    await prisma.verificationToken.deleteMany();
     await prisma.user.deleteMany();
 
     // 1. ダミーユーザーの作成 (10人)
@@ -18,7 +22,8 @@ async function main() {
                 data: {
                     name: faker.person.fullName(),
                     email: `user${i + 1}@example.com`,
-                    image: faker.image.avatar(),
+                    emailVerified: faker.helpers.maybe(() => faker.date.past(), { probability: 0.5 }),
+                    image: faker.image.avatarGitHub(),
                 },
             })
         )
@@ -30,7 +35,7 @@ async function main() {
             prisma.group.create({
                 data: {
                     name: `${faker.company.name()} コミュニティ`,
-                    iconUrl: faker.image.urlLoremFlickr({ category: 'abstract' }),
+                    iconUrl: faker.image.url(),
                 },
             })
         )
@@ -48,7 +53,7 @@ async function main() {
                     userId: user.id,
                     groupId: group.id,
                     lateCount: faker.number.int({ min: 0, max: 5 }),
-                    displayName: faker.datatype.boolean({ probability: 0.3 }) ? faker.person.middleName() : null,
+                    displayName: faker.helpers.maybe(() => faker.person.middleName(), { probability: 0.3 }),
                     joinedAt: faker.date.past({ years: 1 }),
                 },
             });
@@ -58,13 +63,26 @@ async function main() {
         for (let i = 0; i < 2; i++) {
             const meetingTime = faker.date.soon({ days: 30 });
 
+            // Event と一対一で紐づく Destination を作成
+            const destination = await prisma.destination.create({
+                data: {
+                    name: `${faker.location.city()} ${faker.word.noun()} カフェ`,
+                    address: faker.location.streetAddress(),
+                    latitude: faker.location.latitude(),
+                    longitude: faker.location.longitude(),
+                    placeId: faker.helpers.maybe(() => faker.string.alphanumeric({ length: 12 }), {
+                        probability: 0.8,
+                    }),
+                },
+            });
+
             const event = await prisma.event.create({
                 data: {
                     groupId: group.id,
                     title: `${faker.word.noun()} 勉強会`,
                     description: faker.lorem.paragraph(),
-                    location: faker.location.city() + ' カフェ',
-                    meetingTime: meetingTime,
+                    meetingTime,
+                    destinationId: destination.id,
                 },
             });
 
@@ -85,6 +103,18 @@ async function main() {
             }
         }
     }
+
+    // シード結果のサマリー
+    const [userCount, groupCount, eventCount, destinationCount, eventMemberCount] = await Promise.all([
+        prisma.user.count(),
+        prisma.group.count(),
+        prisma.event.count(),
+        prisma.destination.count(),
+        prisma.eventMember.count(),
+    ]);
+    console.log(
+        `Seeded: ${userCount} users, ${groupCount} groups, ${eventCount} events, ${destinationCount} destinations, ${eventMemberCount} event members`
+    );
 }
 
 main()

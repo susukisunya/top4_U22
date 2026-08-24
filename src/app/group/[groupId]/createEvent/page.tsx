@@ -1,7 +1,7 @@
 //予定作成
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -26,39 +26,27 @@ type Group = {
   iconUrl?: string;
 };
 
-// APIから取得する想定の仮データ
-const users: User[] = [
-  {
-    id: "1",
-    username: "メンバー1",
-    iconUrl: "",
-  },
-  {
-    id: "2",
-    username: "メンバー2",
-    iconUrl: "",
-  },
-  {
-    id: "3",
-    username: "メンバー3",
-    iconUrl: "",
-  },
-  {
-    id: "4",
-    username: "メンバー4",
-    iconUrl: "",
-  },
-  {
-    id: "5",
-    username: "メンバー5",
-    iconUrl: "",
-  },
-];
-
-const group: Group = {
-  id: "group-1",
-  name: "情報工学科A班",
-  iconUrl: "",
+// GET /api/groups/:id のレスポンス型（参加メンバーを含む）
+type ApiGroup = {
+  id: string;
+  name: string;
+  iconUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count: {
+    members: number;
+  };
+  members: {
+    userId: string;
+    displayName: string | null;
+    lateCount: number;
+    joinedAt: string;
+    user: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+  }[];
 };
 
 
@@ -67,10 +55,53 @@ export default function CreateEventPage() {
   const groupId = params.groupId;
 
   const [eventName, setEventName] = useState("");
-  const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   // 選択されているメンバーのID
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+
+  // APIから取得するグループとメンバー(ユーザー)
+  const [group, setGroup] = useState<Group | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // グループと参加メンバーをAPIから取得
+  useEffect(() => {
+    const fetchGroup = async () => {
+      try {
+        const response = await fetch(`/api/groups/${groupId}`);
+
+        if (!response.ok) {
+          throw new Error("グループの取得に失敗しました");
+        }
+
+        const data: ApiGroup = await response.json();
+
+        setGroup({
+          id: data.id,
+          name: data.name,
+          iconUrl: data.iconUrl ?? "",
+        });
+
+        // APIのmembersを画面表示用に変換
+        setUsers(
+          data.members.map((member) => ({
+            id: member.user.id,
+            username:
+              member.displayName ?? member.user.name ?? "名前未設定",
+            iconUrl: member.user.image ?? "",
+          }))
+        );
+      } catch (error) {
+        console.error(error);
+        setError("グループの取得に失敗しました");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroup();
+  }, [groupId]);
   // メンバーを選択・解除
   const toggleMember = (userId: string) => {
     setSelectedMembers((current) =>
@@ -79,6 +110,33 @@ export default function CreateEventPage() {
         : [...current, userId]
     );
   };
+
+  // 読み込み中
+  if (loading) {
+    return (
+      <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
+        <Header />
+        <p className="text-center text-gray-500">
+          グループを読み込んでいます...
+        </p>
+        <Footer />
+      </main>
+    );
+  }
+
+  // グループの取得に失敗した場合
+  if (error || !group) {
+    return (
+      <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
+        <Header />
+        <h1 className="text-2xl font-bold">グループが見つかりません</h1>
+        <Button variant="outline" asChild className="mt-6">
+          <Link href="/group">グループ一覧に戻る</Link>
+        </Button>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">

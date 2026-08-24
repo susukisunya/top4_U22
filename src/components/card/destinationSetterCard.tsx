@@ -10,12 +10,11 @@ import {
   useMapsLibrary,
 } from '@vis.gl/react-google-maps';
 import type { MapMouseEvent } from '@vis.gl/react-google-maps';
-import { Loader2, MapPin, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { MapPin, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 // マップで選択もしくは検索で決まった「目的地」の情報
-type SelectedDestination = {
+export type SelectedDestination = {
   name: string;
   address: string;
   latitude: number;
@@ -23,21 +22,34 @@ type SelectedDestination = {
   placeId?: string;
 };
 
-// 初期表示地点（渋谷付近）。必要に応じて変更して良い
+// 初期表示地点（渋谷付近）
 const DEFAULT_CENTER = { lat: 35.656, lng: 139.737 };
 
-export function DestinationSetterCard() {
+type DestinationSetterCardProps = {
+  // 選択された情報を親に通知する（作成ボタンで一括保存するため）
+  onDestinationSelected?: (destination: SelectedDestination | null) => void;
+};
+
+export function DestinationSetterCard({
+  onDestinationSelected,
+}: DestinationSetterCardProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
 
   return (
     // libraries: ['places'] で検索(オートコンプリート)用ライブラリも先に読み込む
     <APIProvider apiKey={apiKey} libraries={['places']}>
-      <DestinationSetterContent />
+      <DestinationSetterContent onDestinationSelected={onDestinationSelected} />
     </APIProvider>
   );
 }
 
-function DestinationSetterContent() {
+type DestinationSetterContentProps = {
+  onDestinationSelected?: (destination: SelectedDestination | null) => void;
+};
+
+function DestinationSetterContent({
+  onDestinationSelected,
+}: DestinationSetterContentProps) {
   const map = useMap();
   const places = useMapsLibrary('places');
   const apiLoaded = useApiIsLoaded();
@@ -46,14 +58,16 @@ function DestinationSetterContent() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [selected, setSelected] = useState<SelectedDestination | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [locationsSearchable, setLocationsSearchable] = useState(false);
 
   useEffect(() => {
     mapRef.current = map;
   }, [map]);
+
+  // 選択中の目的地を親コンポーネントへ通知する（作成ボタンでの保存に使う）
+  useEffect(() => {
+    onDestinationSelected?.(selected);
+  }, [selected, onDestinationSelected]);
 
   // 検索ボックスに Google Places のオートコンプリートを割り当てる
   useEffect(() => {
@@ -80,8 +94,6 @@ function DestinationSetterContent() {
         longitude: lng,
         placeId: place.place_id ?? undefined,
       });
-      setSaved(false);
-      setError(null);
 
       // 候補の場所へ視点を移動
       mapRef.current?.panTo({ lat, lng });
@@ -109,8 +121,6 @@ function DestinationSetterContent() {
       latitude: latLng.lat,
       longitude: latLng.lng,
     });
-    setSaved(false);
-    setError(null);
 
     void reverseGeocode(latLng.lat, latLng.lng);
   };
@@ -139,42 +149,6 @@ function DestinationSetterContent() {
       );
     } catch {
       // 逆ジオコーディングに失敗してもピンと座標は残す
-    }
-  };
-
-  // 選択した目的地を /api/destinations に POST してDBへ保存する
-  const handleSave = async () => {
-    if (!selected) return;
-
-    setSaving(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/destinations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: selected.name,
-          address: selected.address || null,
-          latitude: selected.latitude,
-          longitude: selected.longitude,
-          placeId: selected.placeId ?? null,
-        }),
-      });
-      const json = (await res.json()) as {
-        success?: boolean;
-        error?: string;
-        data?: { id: string };
-      };
-
-      if (!res.ok || !json.success) {
-        throw new Error(json.error ?? '目的地の保存に失敗しました');
-      }
-
-      setSaved(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '目的地の保存に失敗しました');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -244,18 +218,12 @@ function DestinationSetterContent() {
         </p>
       )}
 
-      {/* 保存ボタン */}
-      <Button
-        type="button"
-        className="w-full"
-        onClick={handleSave}
-        disabled={!selected || saving}
-      >
-        {saving && <Loader2 className="animate-spin" />}
-        {saving ? '保存中…' : saved ? '保存しました' : 'この場所を保存する'}
-      </Button>
-
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {/* 保存は「作成」ボタンで一括実行される */}
+      {selected && (
+        <p className="text-xs text-muted-foreground">
+          選択した目的地は「作成」ボタンで一緒に保存されます。
+        </p>
+      )}
     </div>
   );
 }

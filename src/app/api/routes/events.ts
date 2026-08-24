@@ -101,6 +101,7 @@ eventsRoute.get('/:id', async (c) => {
 
 // POST /api/events
 // イベントを作成する。groupId / title / meetingTime が必要。
+// 任意で destination（目的地情報）と memberIds（参加メンバー）も同時に保存する。
 eventsRoute.post('/', async (c) => {
   try {
     const body = await c.req.json<{
@@ -108,31 +109,85 @@ eventsRoute.post('/', async (c) => {
       title?: string
       description?: string
       meetingTime?: string
+      destination?: {
+        name?: string
+        address?: string | null
+        latitude?: number | string
+        longitude?: number | string
+        placeId?: string | null
+      } | null
+      memberIds?: string[]
     }>()
 
-    if (!body.groupId || !body.title || !body.meetingTime) {
+    // 必須チェック（クロージャ内で型を保持できるようローカル変数に取り出す）
+    const groupId = body.groupId
+    const title = body.title
+    const meetingTime = body.meetingTime
+    if (!groupId || !title || !meetingTime) {
       return c.json(
         { error: 'groupId と title と meetingTime は必須です' },
         400
       )
     }
 
-    const event = await prisma.event.create({
-      data: {
-        groupId: body.groupId,
-        title: body.title,
-        description: body.description ?? null,
-        meetingTime: new Date(body.meetingTime),
-      },
-      select: {
-        id: true,
-        groupId: true,
-        title: true,
-        description: true,
-        meetingTime: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    // Event / Destination / EventMember をまとめて保存する
+    const event = await prisma.$transaction(async (tx) => {
+      // 1. 目的地が指定されていれば Destination を作成して Event に紐付ける
+      let destinationId: string | null = null
+      const dest = body.destination
+      if (
+        dest &&
+        dest.name &&
+        dest.latitude !== undefined &&
+        dest.longitude !== undefined
+      ) {
+        const created = await tx.destination.create({
+          data: {
+            name: dest.name,
+            address: dest.address ?? null,
+            latitude: Number(dest.latitude),
+            longitude: Number(dest.longitude),
+            placeId: dest.placeId ?? null,
+          },
+        })
+        destinationId = created.id
+      }
+
+      // 2. イベントを作成
+      const event = await tx.event.create({
+        data: {
+          groupId,
+          title,
+          description: body.description ?? null,
+          meetingTime: new Date(meetingTime),
+          destinationId,
+        },
+        select: {
+          id: true,
+          groupId: true,
+          title: true,
+          description: true,
+          meetingTime: true,
+          destinationId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+
+      // 3. 参加メンバーを EventMember として登録
+      const memberIds = Array.from(new Set(body.memberIds ?? [])).filter(
+        (id) => typeof id === 'string' && id.length > 0
+      )
+      if (memberIds.length > 0) {
+        await tx.eventMember.createMany({
+          data: memberIds.map((userId) => ({
+            eventId: event.id,
+            userId,
+          })),
+        })
+      }
+
+      return event
     })
 
     return c.json(event, 201)

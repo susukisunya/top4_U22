@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
-import { MoreVertical } from "lucide-react";
+import { ChevronRight, Copy, Plus, UsersRound, UserPlus, CalendarPlus, MoreVertical } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,11 +14,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Link from "next/link";
-import { Copy } from "lucide-react";
-import { Plus } from "lucide-react";
-import { UsersRound } from "lucide-react";
-import { UserPlus } from "lucide-react";
-import { CalendarPlus } from "lucide-react";
 import { GroupHeader } from "@/components/card/group-header";
 import Header from "@/components/homepage/Header";
 import Footer from "@/components/homepage/Footer";
@@ -253,9 +248,37 @@ export default async function GroupPage({ params }: Props) {
         </Link>
       </Button>
 
-      {/* 次回予定表示 */}
+      {/* 予定表示 */}
       <Card>
-        <CardContent>予定</CardContent>
+        <CardContent className="p-4">
+          {group.events.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              予定はまだありません。
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {group.events.map((event) => (
+                <Link key={event.id} href={`/group/${groupId}/event/${event.id}`}>
+                  <div className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-gray-100">
+                    <div>
+                      <p className="font-medium">{event.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(event.meetingTime).toLocaleString("ja-JP", {
+                          month: "long",
+                          day: "numeric",
+                          weekday: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       {/* 遅刻ランキング */}

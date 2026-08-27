@@ -33,6 +33,19 @@ model User {
   eventMembers EventMember[]
 }
 
+//google mapの情報を保存するためのモデル
+model Destination {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  latitude  Float
+  longitude Float
+  placeId   String? // Google Maps の Place ID 
+  createdAt DateTime @default(now())
+
+  event Event? @relation("EventDestination")
+}
+
 // Auth.jsがOAuth連携情報を保存するためのモデル
 model Account {
   id                String   @id @default(cuid())
@@ -88,16 +101,17 @@ model Group {
 }
 
 model Event {
-  id          String        @id @default(uuid())
-  groupId     String
-  title       String
-  description String?
-  location    String?
-  meetingTime DateTime
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  group       Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  members     EventMember[]
+  id            String        @id @default(uuid())
+  groupId       String
+  title         String
+  description   String?
+  meetingTime   DateTime
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  group         Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  members       EventMember[]
+  destinationId String?       @unique // 一対一（Event 側がFKを持つ）
+  destination   Destination?  @relation("EventDestination", fields: [destinationId], references: [id])
 }
 
 model GroupMember {

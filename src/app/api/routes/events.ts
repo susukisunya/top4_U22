@@ -1,13 +1,25 @@
 import { Hono } from 'hono'
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/lib/auth'
 
 // GET /api/events
-// イベントの情報と、各イベントに参加するメンバー（ユーザー）の情報を取得する。
+// ログイン中ユーザーが参加するイベントの情報と、各イベントの参加メンバーを取得する。
 export const eventsRoute = new Hono()
 
 eventsRoute.get('/', async (c) => {
+  // ログイン中のユーザーIDを取得（未ログインなら401）
+  const session = await auth()
+  const userId = session?.user?.id
+  if (!userId) {
+    return c.json({ error: 'ログインしてください' }, 401)
+  }
+
   try {
     const events = await prisma.event.findMany({
+      where: {
+        // ログイン中ユーザーが参加するイベントだけを返す
+        members: { some: { userId } },
+      },
       select: {
         id: true,
         groupId: true,
@@ -60,10 +72,30 @@ eventsRoute.get('/', async (c) => {
 })
 
 // GET /api/events/:id
-// イベント単体の詳細情報と、参加メンバー（ユーザー）の情報を取得する。
+// ログイン中ユーザーが参加する（またはグループに所属している）イベント詳細を取得する。
 eventsRoute.get('/:id', async (c) => {
+  // ログイン中のユーザーIDを取得（未ログインなら401）
+  const session = await auth()
+  const userId = session?.user?.id
+  if (!userId) {
+    return c.json({ error: 'ログインしてください' }, 401)
+  }
+
   try {
     const id = c.req.param('id')
+
+    // ログイン中ユーザーがこのイベントに参加しているか確認する
+    const participation = await prisma.eventMember.findUnique({
+      where: {
+        userId_eventId: { userId, eventId: id },
+      },
+      select: { userId: true },
+    })
+
+    // 参加していないイベントは開けない（存在を隠すため404を返す）
+    if (!participation) {
+      return c.json({ error: 'イベントが見つかりません' }, 404)
+    }
 
     const event = await prisma.event.findUnique({
       where: { id },
@@ -124,7 +156,15 @@ eventsRoute.get('/:id', async (c) => {
 // POST /api/events
 // イベントを作成する。groupId / title / meetingTime が必要。
 // 任意で destination（目的地情報）と memberIds（参加メンバー）も同時に保存する。
+// イベント作成者（ログイン中ユーザー）は自動的に参加メンバーとして登録される。
 eventsRoute.post('/', async (c) => {
+  // ログイン中のユーザーIDを取得（未ログインなら401）
+  const session = await auth()
+  const loginUserId = session?.user?.id
+  if (!loginUserId) {
+    return c.json({ error: 'ログインしてください' }, 401)
+  }
+
   try {
     const body = await c.req.json<{
       groupId?: string
@@ -197,9 +237,11 @@ eventsRoute.post('/', async (c) => {
       })
 
       // 3. 参加メンバーを EventMember として登録
-      const memberIds = Array.from(new Set(body.memberIds ?? [])).filter(
-        (id) => typeof id === 'string' && id.length > 0
-      )
+      //    重複を除き、イベント作成者（ログイン中ユーザー）は常に参加者にする
+      const memberIds = Array.from(
+        new Set([...body.memberIds ?? [], loginUserId])
+      ).filter((id) => typeof id === 'string' && id.length > 0)
+
       if (memberIds.length > 0) {
         await tx.eventMember.createMany({
           data: memberIds.map((userId) => ({

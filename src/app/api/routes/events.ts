@@ -16,6 +16,17 @@ eventsRoute.get('/', async (c) => {
         meetingTime: true,
         createdAt: true,
         updatedAt: true,
+        destinationId: true,
+        destination: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            latitude: true,
+            longitude: true,
+            placeId: true,
+          },
+        },
         group: {
           select: {
             id: true,
@@ -64,6 +75,17 @@ eventsRoute.get('/:id', async (c) => {
         meetingTime: true,
         createdAt: true,
         updatedAt: true,
+        destinationId: true,
+        destination: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            latitude: true,
+            longitude: true,
+            placeId: true,
+          },
+        },
         group: {
           select: {
             id: true,

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MemberCard, MemberStatus } from "@/components/card/memberCard";
-import { MissionCard } from "@/components/card/missionCard";
+import { EventCard } from "@/components/card/eventCard";
 import { MapCard, type MapCardDestination } from "@/components/card/mapCard";
 import { RouteDeadlineCard } from "@/components/card/routeDeadlineCard";
 import { ArrivalReportCard } from "@/components/card/ArrivalReportCard";
@@ -133,11 +133,16 @@ export default function EventPage() {
       <Header />
 
       {/* イベントの基本情報 */}
-      <MissionCard
-        title={event.title}
-        location={event.destination?.name ?? event.destination?.address ?? "目的地未設定"}
-        meetDate={meetDateLabel}
-        meetTime={meetTimeLabel}
+      <EventCard
+        event={{
+          title: event.title,
+          location:
+            event.destination?.name ??
+            event.destination?.address ??
+            "目的地未設定",
+          meetDate: meetDateLabel,
+          meetTime: meetTimeLabel,
+        }}
       />
 
       {/* 目的地の地図（destination からピンを表示） */}

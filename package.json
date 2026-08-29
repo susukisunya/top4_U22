@@ -41,6 +41,7 @@
     "@faker-js/faker": "^10.6.0",
     "@quramy/prisma-fabbrica": "^2.3.3",
     "@tailwindcss/postcss": "^4",
+    "@types/google.maps": "^3.66.0",
     "@types/node": "^20.19.43",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -3,6 +3,7 @@ import MonthlyLateCard from "@/components/homepage/MonthlyLateCard";
 import { MissionCard } from "@/components/card/missionCard";
 import ScheduleList from "@/components/homepage/ScheduleList";
 import Footer from "@/components/homepage/Footer";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -12,7 +13,11 @@ export default function Home() {
       <div className="p-4 space-y-6">
         <MonthlyLateCard />
 
+        <Link
+          href = "/group/1/event"
+          >
         <MissionCard />
+        </Link>
 
         <ScheduleList />
       </div>

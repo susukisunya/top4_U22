@@ -1,17 +1,16 @@
 import { Hono } from 'hono'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { getLoginUserId, unauthorized } from '@/lib/errorHandling'
 
 // GET /api/groups
 // ログイン中ユーザーが所属するグループと、各グループのメンバー情報を取得する。
 export const groupsRoute = new Hono()
 
 groupsRoute.get('/', async (c) => {
-  // ログイン中のユーザーIDを取得（未ログインなら401）
-  const session = await auth()
-  const userId = session?.user?.id
+  // ログイン中のユーザーIDを取得（未ログインなら401＋診断ログ）
+  const userId = await getLoginUserId(c)
   if (!userId) {
-    return c.json({ error: 'ログインしてください' }, 401)
+    return unauthorized(c)
   }
 
   try {
@@ -63,11 +62,10 @@ groupsRoute.get('/', async (c) => {
 // GET /api/groups/:id
 // ログイン中ユーザーが所属するグループ単体の情報と、メンバー・イベント情報を取得する。
 groupsRoute.get('/:id', async (c) => {
-  // ログイン中のユーザーIDを取得（未ログインなら401）
-  const session = await auth()
-  const userId = session?.user?.id
+  // ログイン中のユーザーIDを取得（未ログインなら401＋診断ログ）
+  const userId = await getLoginUserId(c)
   if (!userId) {
-    return c.json({ error: 'ログインしてください' }, 401)
+    return unauthorized(c)
   }
 
   try {
@@ -171,11 +169,10 @@ groupsRoute.get('/:id/members', async (c) => {
 // POST /api/groups
 // グループを作成し、作成者がそのグループのメンバーとして登録される。
 groupsRoute.post('/', async (c) => {
-  // ログイン中のユーザーIDを取得（未ログインなら401）
-  const session = await auth()
-  const userId = session?.user?.id
+  // ログイン中のユーザーIDを取得（未ログインなら401＋診断ログ）
+  const userId = await getLoginUserId(c)
   if (!userId) {
-    return c.json({ error: 'ログインしてください' }, 401)
+    return unauthorized(c)
   }
 
   try {

@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import Header from "@/components/homepage/Header";
 import MonthlyLateCard from "@/components/homepage/MonthlyLateCard";
 import { EventCard, type EventCardData } from "@/components/card/eventCard";
@@ -26,9 +27,14 @@ export default async function Home() {
   let nextEvent: EventCardData | null = null;
 
   try {
-    const base =
-      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-    const res = await fetch(`${base}/api/events`, { cache: "no-store" });
+    const base = process.env.NEXT_PUBLIC_APP_URL;
+    // サーバーコンポーネントから内部APIを呼ぶ場合、ブラウザのCookieは自動付与されないため
+    // セッションCookieを明示的に転送する（転送しないとAPI側で未ログイン扱いになり401になる）
+    const cookieHeader = (await headers()).get("cookie") ?? "";
+    const res = await fetch(`${base}/api/events`, {
+      cache: "no-store",
+      headers: { cookie: cookieHeader },
+    });
 
     if (res.ok) {
       const events: ApiEventData[] = await res.json();
@@ -63,6 +69,9 @@ export default async function Home() {
           }),
         };
       }
+    } else {
+      // APIが401等を返した場合（セッションCookieの転送漏れ・失効など。詳細はAPI側の診断ログを参照）
+      console.error(`/api/events が ${res.status} を返しました`);
     }
   } catch (error) {
     console.error("次回イベントの取得に失敗しました:", error);

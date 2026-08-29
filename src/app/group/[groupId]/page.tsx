@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { GroupHeader } from "@/components/card/group-header";
 import Header from "@/components/homepage/Header";
 import Footer from "@/components/homepage/Footer";
@@ -59,16 +60,54 @@ type Group = {
 export default async function GroupPage({ params }: Props) {
   const { groupId } = await params;
 
-  // APIからグループ情報を取得
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/groups/${groupId}`,
-    {
-      cache: "no-store",
-    }
-  );
+  // APIからグループ情報を取得する。
+  // サーバーコンポーネントから内部APIを呼ぶ場合、ブラウザのCookieは自動付与されないため
+  // セッションCookieを明示的に転送する（転送しないとAPI側で未ログイン扱いになり401になる）
+  let response: Response;
+  try {
+    const cookieHeader = (await headers()).get("cookie") ?? "";
+    response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/groups/${groupId}`,
+      {
+        cache: "no-store",
+        headers: { cookie: cookieHeader },
+      }
+    );
+  } catch (error) {
+    console.error("グループ情報の取得に失敗しました:", error);
+    return (
+      <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
+        <Header />
+        <h1 className="text-2xl font-bold">通信エラーが発生しました</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          時間をおいて再度お試しください。
+        </p>
+        <Button variant="outline" asChild className="mt-6">
+          <Link href="/group">グループ一覧に戻る</Link>
+        </Button>
+        <Footer />
+      </main>
+    );
+  }
 
   // グループが取得できなかった場合
   if (!response.ok) {
+    // 401 は「存在しない」ではなく「未ログイン／セッション失効」なので案内を出し分ける
+    if (response.status === 401) {
+      return (
+        <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
+          <Header />
+          <h1 className="text-2xl font-bold">ログインが必要です</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            セッションの有効期限が切れた可能性があります。再度ログインしてください。
+          </p>
+          <Button variant="outline" asChild className="mt-6">
+            <Link href="/auth/login">ログインページへ</Link>
+          </Button>
+          <Footer />
+        </main>
+      );
+    }
       return (
       <main className="mx-auto w-full max-w-2xl p-6 pt-20 pb-20">
         <Header />

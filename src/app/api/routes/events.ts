@@ -1,17 +1,16 @@
 import { Hono } from 'hono'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { getLoginUserId, unauthorized } from '@/lib/errorHandling'
 
 // GET /api/events
 // ログイン中ユーザーが参加するイベントの情報と、各イベントの参加メンバーを取得する。
 export const eventsRoute = new Hono()
 
 eventsRoute.get('/', async (c) => {
-  // ログイン中のユーザーIDを取得（未ログインなら401）
-  const session = await auth()
-  const userId = session?.user?.id
+  // ログイン中のユーザーIDを取得（未ログインなら401＋診断ログ）
+  const userId = await getLoginUserId(c)
   if (!userId) {
-    return c.json({ error: 'ログインしてください' }, 401)
+    return unauthorized(c)
   }
 
   try {
@@ -74,11 +73,10 @@ eventsRoute.get('/', async (c) => {
 // GET /api/events/:id
 // ログイン中ユーザーが参加する（またはグループに所属している）イベント詳細を取得する。
 eventsRoute.get('/:id', async (c) => {
-  // ログイン中のユーザーIDを取得（未ログインなら401）
-  const session = await auth()
-  const userId = session?.user?.id
+  // ログイン中のユーザーIDを取得（未ログインなら401＋診断ログ）
+  const userId = await getLoginUserId(c)
   if (!userId) {
-    return c.json({ error: 'ログインしてください' }, 401)
+    return unauthorized(c)
   }
 
   try {
@@ -158,11 +156,10 @@ eventsRoute.get('/:id', async (c) => {
 // 任意で destination（目的地情報）と memberIds（参加メンバー）も同時に保存する。
 // イベント作成者（ログイン中ユーザー）は自動的に参加メンバーとして登録される。
 eventsRoute.post('/', async (c) => {
-  // ログイン中のユーザーIDを取得（未ログインなら401）
-  const session = await auth()
-  const loginUserId = session?.user?.id
+  // ログイン中のユーザーIDを取得（未ログインなら401＋診断ログ）
+  const loginUserId = await getLoginUserId(c)
   if (!loginUserId) {
-    return c.json({ error: 'ログインしてください' }, 401)
+    return unauthorized(c)
   }
 
   try {

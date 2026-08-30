@@ -16,6 +16,7 @@
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.5.0",
     "@auth/prisma-adapter": "^2.11.3",
+    "@aws-sdk/client-s3": "^3.1121.0",
     "@prisma/client": "^6.19.3",
     "@vis.gl/react-google-maps": "^1.9.0",
     "class-variance-authority": "^0.7.1",
@@ -42,6 +43,7 @@
     "@quramy/prisma-fabbrica": "^2.3.3",
     "@tailwindcss/postcss": "^4",
     "@types/google.maps": "^3.66.0",
+    "@types/multer": "^2.2.0",
     "@types/node": "^20.19.43",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { MemberCard, MemberStatus } from "@/components/card/memberCard";
 import { EventCard } from "@/components/card/eventCard";
 import { MapCard, type MapCardDestination } from "@/components/card/mapCard";
-import { RouteDeadlineCard } from "@/components/card/routeDeadlineCard";
 import { ArrivalReportCard } from "@/components/card/ArrivalReportCard";
 import Header from "@/components/homepage/Header";
 import Footer from "@/components/homepage/Footer";

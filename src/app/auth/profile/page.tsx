@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { uploadImage } from "@/lib/upload-image";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -81,9 +82,50 @@ function ProfileForm({
 }) {
   const router = useRouter();
   const [username, setUsername] = useState(defaultName);
+  // 保存するURL（S3で発行されたURL or 初期状態ではGoogleアカウントの画像URL）
   const [iconUrl, setIconUrl] = useState(defaultIcon);
+  // プレビュー表示用のURL（アップロード中は選択した画像を即座に表示する）
+  const [iconPreviewUrl, setIconPreviewUrl] = useState(defaultIcon);
+  const [isUploadingIcon, setIsUploadingIcon] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // アイコン画像を選択したら S3 にアップロードし、発行されたURLを保存用の状態に持つ
+  const handleIconChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    // 選択した画像をすぐプレビューする
+    const previewObjectUrl = URL.createObjectURL(file);
+    setIconPreviewUrl(previewObjectUrl);
+
+    setIsUploadingIcon(true);
+    setUploadError(null);
+    try {
+      const uploadedUrl = await uploadImage(file, "users");
+      setIconUrl(uploadedUrl);
+      setIconPreviewUrl(uploadedUrl);
+      URL.revokeObjectURL(previewObjectUrl);
+    } catch (e) {
+      console.error("アイコンのアップロードに失敗しました:", e);
+      setUploadError(
+        e instanceof Error
+          ? e.message
+          : "アイコンのアップロードに失敗しました"
+      );
+      // 失敗したら元の画像のプレビューに戻す
+      setIconPreviewUrl(iconUrl);
+      URL.revokeObjectURL(previewObjectUrl);
+    } finally {
+      setIsUploadingIcon(false);
+    }
+  };
 
   // DBにユーザーネームとアイコンを保存する
   const handleRegister = async () => {
@@ -131,7 +173,7 @@ function ProfileForm({
           {/* アイコン */}
           <div className="flex flex-col items-center gap-4">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={iconUrl} />
+              <AvatarImage src={iconPreviewUrl} />
 
               <AvatarFallback className="text-2xl">
                 {username
@@ -148,13 +190,29 @@ function ProfileForm({
                 アイコン
               </label>
 
-              <Input
+              {/* 選択した画像は S3 にアップロードされ、発行されたURLを保存する */}
+              <input
                 id="icon"
-                type="text"
-                value={iconUrl}
-                onChange={(e) => setIconUrl(e.target.value)}
-                placeholder="アイコン画像URL"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleIconChange}
+                className="hidden"
               />
+
+              <Button
+                type="button"
+                variant="outline"
+                asChild
+                className="w-full"
+              >
+                <span>
+                  {isUploadingIcon ? "アップロード中..." : "アイコン画像を選択"}
+                </span>
+              </Button>
+
+              {uploadError && (
+                <p className="text-xs text-red-500">{uploadError}</p>
+              )}
             </div>
           </div>
 
@@ -189,7 +247,7 @@ function ProfileForm({
           <Button
             type="button"
             onClick={handleRegister}
-            disabled={isSubmitting || !username.trim()}
+            disabled={isSubmitting || isUploadingIcon || !username.trim()}
             className="w-full bg-gray-700 py-6 text-base font-semibold hover:bg-gray-600"
           >
             {isSubmitting ? "登録中..." : "登録する"}

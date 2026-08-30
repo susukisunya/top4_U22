@@ -1,3 +1,4 @@
+
 export default function MonthlyLateCard() {
   return (
     <div className="w-32 rounded border-[3px] border-black p-3 shadow">

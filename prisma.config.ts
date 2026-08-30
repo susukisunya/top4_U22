@@ -1,4 +1,3 @@
-//ちゃんとできそうになったら、urlのところはDATABESE_URLに変える。なんか無料で作れそう
 import "dotenv/config";
 import { defineConfig, env } from "prisma/config";
 

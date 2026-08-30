@@ -29,6 +29,7 @@ type ApiEvent = {
     userId: string;
     isAttending: boolean;
     meetingTime: string | null;
+    arrivedAt: string | null;
     user: {
       id: string;
       name: string | null;
@@ -37,7 +38,7 @@ type ApiEvent = {
   }[];
 };
 
-// 到着ステータスはまだ実装されていないため、取得できる情報を元にダミーのステータスを作る
+// 到着報告していないメンバーのステータス（従来のダミー）
 const DEFAULT_STATUS: MemberStatus = { type: "missing" };
 
 export default function EventPage() {
@@ -47,6 +48,9 @@ export default function EventPage() {
   const [event, setEvent] = useState<ApiEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+  // 到着報告後にイベント情報を再取得するためのキー（値を更新すると再取得が走る）
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -67,8 +71,24 @@ export default function EventPage() {
       }
     };
 
-    fetchEvent();
-  }, [eventId]);
+    void fetchEvent();
+  }, [eventId, refreshKey]);
+
+  // 自分のユーザーIDを取得する（到着報告の状態を「自分の分」だけ判定するため）
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const response = await fetch("/api/users/me");
+        if (!response.ok) return;
+        const me: { id: string } = await response.json();
+        setMyUserId(me.id);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    void fetchMe();
+  }, []);
 
   // 読み込み中
   if (loading) {
@@ -109,6 +129,13 @@ export default function EventPage() {
     minute: "2-digit",
   });
 
+  // 自分の到着報告状態（未報告なら null）
+  const myArrivedAt =
+    myUserId !== null
+      ? (event.members ?? []).find((member) => member.userId === myUserId)
+        ?.arrivedAt ?? null
+      : null;
+
   // 参加メンバーを画面表示用の形に変換
   const members: {
     id: string;
@@ -123,8 +150,16 @@ export default function EventPage() {
       name: userName,
       avatarUrl: member.user.image ?? "",
       fallbackText: userName.slice(0, 2),
-      // 現在は到着ステータスが未実装のためダミー（missing）を設定
-      status: DEFAULT_STATUS,
+      // 到着報告済みのメンバーは到着時刻を表示し、未報告は従来のダミー（missing）
+      status: member.arrivedAt
+        ? {
+          type: "arrived",
+          time: new Date(member.arrivedAt).toLocaleTimeString("ja-JP", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        }
+        : DEFAULT_STATUS,
     };
   });
 
@@ -148,9 +183,18 @@ export default function EventPage() {
       {/* 目的地の地図（destination からピンを表示） */}
       <MapCard destination={event.destination} />
 
-      <RouteDeadlineCard />
 
-      <ArrivalReportCard />
+      {/* 到着報告（目的地付近でのみ押せる。集合時間を過ぎての報告は遅刻として記録される） */}
+      <ArrivalReportCard
+        eventId={event.id}
+        meetingTime={event.meetingTime}
+        destination={event.destination}
+        arrivedAt={myArrivedAt}
+        onArrived={() => {
+          // 報告後にイベント情報を再取得してメンバーの到着状態を更新する
+          setRefreshKey((key) => key + 1);
+        }}
+      />
 
       {members.length > 0 && (
         <div className="space-y-2.5">

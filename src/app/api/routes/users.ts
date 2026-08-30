@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { getLoginUserId, unauthorized } from '@/lib/errorHandling'
 
 // GET /api/users
 // ユーザー一覧と、各ユーザーが所属するグループの情報を取得する。
@@ -9,14 +9,14 @@ export const usersRoute = new Hono()
 // GET /api/users/me
 // ログイン中ユーザーの情報を取得する（未ログインなら401）。
 usersRoute.get('/me', async (c) => {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return c.json({ error: 'ログインしてください' }, 401)
+  const userId = await getLoginUserId(c)
+  if (!userId) {
+    return unauthorized(c)
   }
 
   try {
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       select: {
         id: true,
         name: true,
@@ -42,9 +42,9 @@ usersRoute.get('/me', async (c) => {
 // ログイン中ユーザーのプロフィール（ユーザーネーム・アイコン）を更新する。
 // 初回登録画面（/auth/profile）からの登録・保存はこのエンドポイントで行う。
 usersRoute.put('/me', async (c) => {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return c.json({ error: 'ログインしてください' }, 401)
+  const userId = await getLoginUserId(c)
+  if (!userId) {
+    return unauthorized(c)
   }
 
   try {
@@ -59,7 +59,7 @@ usersRoute.put('/me', async (c) => {
     }
 
     const user = await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: userId },
       data: {
         name,
         image: body.icon ?? null,

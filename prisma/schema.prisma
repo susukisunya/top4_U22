@@ -138,6 +138,7 @@ model EventMember {
 
   isAttending Boolean   @default(true)
   meetingTime DateTime?
+  arrivedAt   DateTime? // 到着報告の時刻（未報告なら null。遅刻判定は集合時間との比較で行う）
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)

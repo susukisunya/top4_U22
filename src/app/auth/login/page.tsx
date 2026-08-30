@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
-  // ログイン後に戻るページ（プロキシから ?callbackUrl= で渡される）
   const [callbackUrl, setCallbackUrl] = useState("/");
 
   useEffect(() => {

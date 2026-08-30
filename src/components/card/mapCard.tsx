@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
 import { Card } from "@/components/ui/card"
-import { APIProvider, Map, Marker } from '@vis.gl/react-google-maps'
 import { MapPin } from 'lucide-react'
+import { useCurrentLocation } from '@/hooks/useCurrentLocation'
+import { DestinationMap } from '@/components/map/destinationMap'
 
 // イベントAPIの destination に合わせた型
 export type MapCardDestination = {
@@ -19,8 +19,10 @@ type MapCardProps = {
   destination?: MapCardDestination | null
 }
 
+// 目的地と現在地を表示するマップカード。
+// 現在地の取得は useCurrentLocation フック、地図の描画は DestinationMap に責務を分離している。
 export function MapCard({ destination }: MapCardProps) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
+  const currentLocation = useCurrentLocation()
   const hasDestination = Boolean(
     destination &&
       destination.latitude !== undefined &&
@@ -30,29 +32,12 @@ export function MapCard({ destination }: MapCardProps) {
   return (
     <Card className="border-2 border-stone-900 shadow-[4px_4px_0px_0px_rgba(28,25,23,1)] overflow-hidden rounded-xl h-48 relative bg-stone-800">
       {hasDestination && destination ? (
-        // 目的地の情報から Google マップにピンを表示する
-        <APIProvider apiKey={apiKey}>
-          <div className="absolute inset-0">
-            <Map
-              defaultCenter={{
-                lat: destination.latitude,
-                lng: destination.longitude,
-              }}
-              defaultZoom={15}
-              style={{ width: '100%', height: '100%' }}
-              mapTypeId="roadmap"
-              mapTypeControlOptions={{ mapTypeIds: ['roadmap'] }}
-              streetViewControl={false}
-            >
-              <Marker
-                position={{
-                  lat: destination.latitude,
-                  lng: destination.longitude,
-                }}
-                title={destination.name}
-              />
-            </Map>
-          </div>
+        <>
+          {/* 目的地と現在地を Google マップで表示する（API読み込み・描画は DestinationMap が担う） */}
+          <DestinationMap
+            destination={destination}
+            currentLocation={currentLocation}
+          />
 
           {/* TARGET ラベル */}
           <div className="absolute top-2 left-2 bg-[#9E3311] text-white text-[10px] font-bold px-2 py-1 rounded border border-stone-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] tracking-wider z-10">
@@ -64,7 +49,7 @@ export function MapCard({ destination }: MapCardProps) {
             <MapPin className="h-3.5 w-3.5 shrink-0 text-[#A8431E]" />
             <span className="truncate">{destination.name}</span>
           </div>
-        </APIProvider>
+        </>
       ) : (
         // 目的地が未設定の場合は従来のプレースホルダー
         <>

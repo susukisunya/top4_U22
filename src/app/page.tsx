@@ -3,6 +3,7 @@ import MonthlyLateCard from "@/components/homepage/MonthlyLateCard";
 import { EventCard, type EventCardData } from "@/components/card/eventCard";
 import ScheduleList from "@/components/homepage/ScheduleList";
 import Footer from "@/components/homepage/Footer";
+import Link from "next/link";
 
 // GET /api/events の次回イベント表示用の型
 type ApiEventData = {
@@ -75,8 +76,13 @@ export default async function Home() {
       <div className="p-4 space-y-6">
         <MonthlyLateCard />
 
+        <Link
+          href = "/group/1/event"
+          >
+      
         {/* 次回のイベント情報（イベントが無い場合は「イベント無し」と表示） */}
         <EventCard event={nextEvent} />
+           </Link>
 
         <ScheduleList />
       </div>

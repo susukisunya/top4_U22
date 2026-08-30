@@ -128,6 +128,7 @@ eventsRoute.get('/:id', async (c) => {
             userId: true,
             isAttending: true,
             meetingTime: true,
+            arrivedAt: true,
             user: {
               select: {
                 id: true,
@@ -148,6 +149,94 @@ eventsRoute.get('/:id', async (c) => {
   } catch (error) {
     console.error('イベントの取得に失敗しました:', error)
     return c.json({ error: 'イベントの取得に失敗しました' }, 500)
+  }
+})
+
+// POST /api/events/:id/arrival
+// ログイン中ユーザーの到着を報告する。
+// サーバー時刻がイベントの集合時間より後なら「遅刻」として記録し、
+// グループメンバーの lateCount を 1 増やす（再報告でも二重加算されない）。
+eventsRoute.post('/:id/arrival', async (c) => {
+  // ログイン中のユーザーIDを取得（未ログインなら401＋診断ログ）
+  const userId = await getLoginUserId(c)
+  if (!userId) {
+    return unauthorized(c)
+  }
+
+  try {
+    const id = c.req.param('id')
+
+    // イベント（集合時間・グループ）と自分の参加記録を取得する
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: { id: true, groupId: true, meetingTime: true },
+    })
+    if (!event) {
+      return c.json({ error: 'イベントが見つかりません' }, 404)
+    }
+
+    const eventMember = await prisma.eventMember.findUnique({
+      where: { userId_eventId: { userId, eventId: id } },
+      select: { arrivedAt: true },
+    })
+    // イベント参加者以外は報告できない（存在を隠すため404）
+    if (!eventMember) {
+      return c.json({ error: 'イベントが見つかりません' }, 404)
+    }
+
+    const now = new Date()
+    const isLate = now.getTime() > event.meetingTime.getTime()
+
+    // 到着を記録する。arrivedAt が未設定のときだけ更新されるため、
+    // 再報告や同時報告があっても遅刻回数が二重に増えることはない。
+    const reportResult = await prisma.$transaction(async (tx) => {
+      const updated = await tx.eventMember.updateMany({
+        where: { userId, eventId: id, arrivedAt: null },
+        data: { arrivedAt: now },
+      })
+
+      if (updated.count === 0) {
+        return { alreadyReported: true as const }
+      }
+
+      // 遅刻ならグループの遅刻回数を1増やす
+      // （GroupMember レコードが無くてもエラーにしないよう updateMany を使う）
+      if (isLate) {
+        await tx.groupMember.updateMany({
+          where: { userId, groupId: event.groupId },
+          data: { lateCount: { increment: 1 } },
+        })
+      }
+
+      return { alreadyReported: false as const }
+    })
+
+    // 応答用に報告後の最新状態を取得する
+    const [member, groupMember] = await Promise.all([
+      prisma.eventMember.findUnique({
+        where: { userId_eventId: { userId, eventId: id } },
+        select: { arrivedAt: true },
+      }),
+      prisma.groupMember.findUnique({
+        where: { userId_groupId: { userId, groupId: event.groupId } },
+        select: { lateCount: true },
+      }),
+    ])
+
+    const reportedAt = member?.arrivedAt ?? null
+
+    return c.json({
+      alreadyReported: reportResult.alreadyReported,
+      arrivedAt: reportedAt,
+      isLate:
+        reportedAt !== null
+          ? reportedAt.getTime() > event.meetingTime.getTime()
+          : isLate,
+      lateCount: groupMember?.lateCount ?? null,
+    })
+  } catch (error) {
+    console.error('到着報告の処理に失敗しました:', error)
+    return c.json({ error: '到着報告の処理に失敗しました' }, 500)
   }
 })
 

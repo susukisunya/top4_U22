@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { uploadImage } from "@/lib/upload-image";
 import Link from "next/link";
 import {
   Card,
@@ -21,10 +22,15 @@ import Footer from "@/components/homepage/Footer";
 
 export default function CreateGroupPage() {
   const [groupName, setGroupName] = useState("");
+  // プレビュー表示用のURL（選択直後はローカルのオブジェクトURL）
   const [iconUrl, setIconUrl] = useState("");
+  // S3 にアップロードして発行されたURL（グループ作成時に Group.iconUrl として保存する）
+  const [uploadedIconUrl, setUploadedIconUrl] = useState("");
+  const [isUploadingIcon, setIsUploadingIcon] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // アイコン画像を選択
-  const handleIconChange = (
+  // アイコン画像を選択したら S3 にアップロードし、発行されたURLを保持する
+  const handleIconChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
@@ -34,8 +40,29 @@ export default function CreateGroupPage() {
     }
 
     // 選択した画像をプレビューする
-    const imageUrl = URL.createObjectURL(file);
-    setIconUrl(imageUrl);
+    const previewObjectUrl = URL.createObjectURL(file);
+    setIconUrl(previewObjectUrl);
+
+    setIsUploadingIcon(true);
+    setUploadError(null);
+    try {
+      const url = await uploadImage(file, "groups");
+      setUploadedIconUrl(url);
+      setIconUrl(url);
+      URL.revokeObjectURL(previewObjectUrl);
+    } catch (error) {
+      console.error("アイコンのアップロードに失敗しました:", error);
+      setUploadError(
+        error instanceof Error
+          ? error.message
+          : "アイコンのアップロードに失敗しました"
+      );
+      // 失敗したらプレビューを取り下げる
+      setIconUrl("");
+      URL.revokeObjectURL(previewObjectUrl);
+    } finally {
+      setIsUploadingIcon(false);
+    }
   };
 
   // グループ作成
@@ -52,7 +79,7 @@ export default function CreateGroupPage() {
         },
         body: JSON.stringify({
           name: groupName.trim(),
-          iconUrl: "",
+          iconUrl: uploadedIconUrl,
         }),
       });
 
@@ -114,7 +141,7 @@ export default function CreateGroupPage() {
 							<input
 								id="group-icon"
 								type="file"
-								accept="image/*"
+								accept="image/jpeg,image/png,image/webp,image/gif"
 								onChange={handleIconChange}
 								className="hidden"
 							/>
@@ -140,10 +167,18 @@ export default function CreateGroupPage() {
           <Button
             className="w-full"
             onClick={handleCreate}
-            disabled={!groupName.trim()}
+            disabled={!groupName.trim() || isUploadingIcon}
           >
-            グループを作成
+            {isUploadingIcon
+              ? "アイコンをアップロード中..."
+              : "グループを作成"}
           </Button>
+
+          {uploadError && (
+            <p className="mt-2 text-center text-sm text-red-500">
+              {uploadError}
+            </p>
+          )}
         </CardContent>
       </Card>
 

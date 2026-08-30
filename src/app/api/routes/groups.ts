@@ -1,13 +1,25 @@
 import { Hono } from 'hono'
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/lib/auth'
 
 // GET /api/groups
-// グループの情報と、各グループに所属するメンバー（ユーザー）の情報を取得する。
+// ログイン中ユーザーが所属するグループと、各グループのメンバー情報を取得する。
 export const groupsRoute = new Hono()
 
 groupsRoute.get('/', async (c) => {
+  // ログイン中のユーザーIDを取得（未ログインなら401）
+  const session = await auth()
+  const userId = session?.user?.id
+  if (!userId) {
+    return c.json({ error: 'ログインしてください' }, 401)
+  }
+
   try {
     const groups = await prisma.group.findMany({
+      where: {
+        // ログイン中ユーザーがメンバーとして所属するグループだけを返す
+        members: { some: { userId } },
+      },
       select: {
         id: true,
         name: true,
@@ -49,10 +61,30 @@ groupsRoute.get('/', async (c) => {
 })
 
 // GET /api/groups/:id
-// グループ単体の情報と、所属メンバー数・イベント情報を取得する。
+// ログイン中ユーザーが所属するグループ単体の情報と、メンバー・イベント情報を取得する。
 groupsRoute.get('/:id', async (c) => {
+  // ログイン中のユーザーIDを取得（未ログインなら401）
+  const session = await auth()
+  const userId = session?.user?.id
+  if (!userId) {
+    return c.json({ error: 'ログインしてください' }, 401)
+  }
+
   try {
     const id = c.req.param('id')
+
+    // ログイン中ユーザーがこのグループに所属しているか確認する
+    const membership = await prisma.groupMember.findUnique({
+      where: {
+        userId_groupId: { userId, groupId: id },
+      },
+      select: { userId: true },
+    })
+
+    // 所属していないグループは開けない（存在を隠すため404を返す）
+    if (!membership) {
+      return c.json({ error: 'グループが見つかりません' }, 404)
+    }
 
     const group = await prisma.group.findUnique({
       where: { id },
@@ -137,35 +169,57 @@ groupsRoute.get('/:id/members', async (c) => {
 })
 
 // POST /api/groups
-// グループを作成する。name / iconUrl が必要。
+// グループを作成し、作成者がそのグループのメンバーとして登録される。
 groupsRoute.post('/', async (c) => {
+  // ログイン中のユーザーIDを取得（未ログインなら401）
+  const session = await auth()
+  const userId = session?.user?.id
+  if (!userId) {
+    return c.json({ error: 'ログインしてください' }, 401)
+  }
+
   try {
     const body = await c.req.json<{
       name?: string
       iconUrl?: string
     }>()
 
-    if (!body.name) {
+    // 必須チェック（クロージャ内で型を保持できるようローカル変数に取り出す）
+    const name = body.name
+    if (!name) {
       return c.json({ error: 'name は必須です' }, 400)
     }
 
-    const group = await prisma.group.create({
-      data: {
-        name: body.name,
-        iconUrl: body.iconUrl ?? '',
-      },
-      select: {
-        id: true,
-        name: true,
-        iconUrl: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: {
-            members: true,
+    // グループの作成と、作成者をメンバーとして登録する
+    const group = await prisma.$transaction(async (tx) => {
+      const created = await tx.group.create({
+        data: {
+          name,
+          iconUrl: body.iconUrl ?? '',
+        },
+        select: {
+          id: true,
+          name: true,
+          iconUrl: true,
+          createdAt: true,
+          updatedAt: true,
+          _count: {
+            select: {
+              members: true,
+            },
           },
         },
-      },
+      })
+
+      // 作成者はグループのメンバーとして自動登録する
+      await tx.groupMember.create({
+        data: {
+          groupId: created.id,
+          userId,
+        },
+      })
+
+      return created
     })
 
     return c.json(group, 201)

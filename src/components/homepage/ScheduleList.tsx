@@ -39,10 +39,8 @@ type Schedule = {
   title: string;
 };
 
-type Props = {
-  /** 予定を表示するユーザーのID。未指定の場合は暫定的に最新のユーザーを対象にする */
-  userId?: string;
-};
+// Props は不要になった（ログインユーザーの予定はAPI側で絞り込まれる）
+type Props = Record<string, never>;
 
 // ISO形式の meetingTime を表示用の Schedule に変換する
 function toSchedule(event: Event): Schedule {
@@ -63,36 +61,17 @@ function toSchedule(event: Event): Schedule {
   };
 }
 
-export default function ScheduleList({ userId }: Props) {
+export default function ScheduleList(_props: Props) {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 予定一覧を取得（APIがログイン中ユーザーの参加イベントを返す）
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
         setError(null);
         setIsLoading(true);
-
-        // 表示対象ユーザーを決定する。
-        // TODO: ログイン機能と連携したらログイン中ユーザーのIDを使う。
-        let targetUserId = userId;
-        if (!targetUserId) {
-          // 未指定の場合は暫定的に /api/users の先頭（最新）ユーザーを対象にする
-          const usersRes = await fetch("/api/users");
-          if (!usersRes.ok) {
-            throw new Error(
-              `/api/users の取得に失敗しました: ${usersRes.status}`
-            );
-          }
-          const users: { id: string }[] = await usersRes.json();
-          targetUserId = users[0]?.id ?? "";
-        }
-
-        if (!targetUserId) {
-          setSchedules([]);
-          return;
-        }
 
         const res = await fetch("/api/events");
         if (!res.ok) {
@@ -101,15 +80,7 @@ export default function ScheduleList({ userId }: Props) {
 
         const events: Event[] = await res.json();
 
-        // 特定のユーザーがメンバーとして含まれるイベントのみ表示する
-        const selectedUserId = targetUserId;
-        setSchedules(
-          events
-            .filter((event) =>
-              event.members.some((member) => member.userId === selectedUserId)
-            )
-            .map(toSchedule)
-        );
+        setSchedules(events.map(toSchedule));
       } catch (e) {
         console.error("予定一覧の取得に失敗しました:", e);
         setError("予定一覧を取得できませんでした");
@@ -119,7 +90,7 @@ export default function ScheduleList({ userId }: Props) {
     };
 
     fetchSchedules();
-  }, [userId]);
+  }, []);
 
   const renderContent = () => {
     if (isLoading) return <p className="text-sm text-gray-500">読み込み中...</p>;

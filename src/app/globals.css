@@ -128,3 +128,8 @@
     @apply font-sans;
   }
 }
+
+/* Google Places オートコンプリートの候補一覧をマップより前面に表示する */
+.pac-container {
+  z-index: 9999 !important;
+}

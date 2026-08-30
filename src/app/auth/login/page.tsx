@@ -2,14 +2,23 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
+  // ログイン後に戻るページ（プロキシから ?callbackUrl= で渡される）
+  const [callbackUrl, setCallbackUrl] = useState("/");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setCallbackUrl(params.get("callbackUrl") ?? "/");
+  }, []);
+
   const handleGoogleLogin = () => {
     signIn("google", {
-      callbackUrl: "/",
+      callbackUrl,
     });
   };
 

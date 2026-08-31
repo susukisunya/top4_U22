@@ -166,6 +166,57 @@ groupsRoute.get('/:id/members', async (c) => {
   }
 })
 
+// POST /api/groups/:id/join
+// ログイン中ユーザーをグループのメンバーとして追加する（QRコード招待などから参加）。
+groupsRoute.post('/:id/join', async (c) => {
+  // ログイン中のユーザーIDを取得（未ログインなら401＋診断ログ）
+  const userId = await getLoginUserId(c)
+  if (!userId) {
+    return unauthorized(c)
+  }
+
+  const id = c.req.param('id')
+
+  try {
+    // グループが存在するか確認する
+    const group = await prisma.group.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    })
+    if (!group) {
+      return c.json({ error: 'グループが見つかりません' }, 404)
+    }
+
+    // 既にメンバーの場合は受け付けない
+    const existing = await prisma.groupMember.findUnique({
+      where: { userId_groupId: { userId, groupId: id } },
+      select: { userId: true },
+    })
+    if (existing) {
+      return c.json({ error: 'すでにこのグループに参加しています' }, 409)
+    }
+
+    // メンバーとして登録する
+    await prisma.groupMember.create({
+      data: {
+        groupId: id,
+        userId,
+      },
+    })
+
+    return c.json(
+      {
+        groupId: group.id,
+        name: group.name,
+      },
+      201
+    )
+  } catch (error) {
+    console.error('グループへの参加に失敗しました:', error)
+    return c.json({ error: 'グループへの参加に失敗しました' }, 500)
+  }
+})
+
 // POST /api/groups
 // グループを作成し、作成者がそのグループのメンバーとして登録される。
 groupsRoute.post('/', async (c) => {

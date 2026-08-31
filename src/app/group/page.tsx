@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, QrCode } from "lucide-react";
 import { GroupCard } from "@/components/card/group-card";
 import Header from "@/components/homepage/Header";
 import Footer from "@/components/homepage/Footer";
@@ -107,11 +107,23 @@ export default function GroupListPage() {
       {/* グループ作成ボタン */}
       <Button
         asChild
-        className="fixed bottom-24 right-6 rounded-full bg-red-700 shadow-lg hover:bg-red-600"
+        className="fixed bottom-24 right-6 z-10 rounded-full bg-red-700 shadow-lg hover:bg-red-600"
       >
         <Link href="/group/createGroup">
           <Plus className="h-5 w-5" />
           グループ作成
+        </Link>
+      </Button>
+
+      {/* QRコードで参加ボタン */}
+      <Button
+        asChild
+        variant="outline"
+        className="fixed bottom-44 right-6 z-10 rounded-full bg-white shadow-lg"
+      >
+        <Link href="/group/join/scan">
+          <QrCode className="h-5 w-5" />
+          QRコードで参加
         </Link>
       </Button>
 

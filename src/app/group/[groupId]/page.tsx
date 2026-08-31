@@ -4,15 +4,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
-import { ChevronRight, Copy, Plus, UsersRound, UserPlus, CalendarPlus, MoreVertical } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { ChevronRight, UsersRound, CalendarPlus, MoreVertical } from "lucide-react";
+import { InviteMembersDialog } from "@/components/group/InviteMembersDialog";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { GroupHeader } from "@/components/card/group-header";
@@ -133,6 +126,9 @@ export default async function GroupPage({ params }: Props) {
 
   const group: Group = await response.json();
 
+  // メンバー招待用のURL（QRコードにこのURLを埋め込む）
+  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/group/join/${groupId}`;
+
   // APIのmembersを画面表示用に変換
   const users = group.members.map((member) => ({
     id: member.user.id,
@@ -217,63 +213,7 @@ export default async function GroupPage({ params }: Props) {
       </Card>
 
       {/* メンバー招待 */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button
-            className="mb-4 w-full bg-gray-300 py-6 text-base font-semibold text-black shadow-sm hover:bg-gray-200"
-          >
-            <UserPlus className="mr-2 !h-6 !w-6" />
-            メンバーを招待
-          </Button>
-        </DialogTrigger>
-
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              メンバーを招待
-            </DialogTitle>
-
-            <DialogDescription>
-              以下のQRコードまたはURLからグループに参加できます。
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* QRコード */}
-          <div className="flex flex-col items-center gap-3 py-4">
-            <p className="text-sm font-semibold">
-              QRコード
-            </p>
-
-            <div className="flex h-48 w-48 items-center justify-center rounded-lg border bg-gray-100">
-              <span className="text-sm text-muted-foreground">
-                QRコード
-              </span>
-            </div>
-          </div>
-
-          {/* 招待URL */}
-          <div className="space-y-2">
-            <p className="text-sm font-semibold">
-              招待URL
-            </p>
-
-            <div className="flex gap-2">
-              <div className="flex-1 rounded-md border bg-gray-100 px-3 py-2 text-sm">
-                https://example.com/group/invite/abc123
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-        </DialogContent>
-      </Dialog>
+      <InviteMembersDialog inviteUrl={inviteUrl} />
 
 
       {/* 予定作成 */}

@@ -8,6 +8,7 @@ export const usersRoute = new Hono()
 
 // GET /api/users/me
 // ログイン中ユーザーの情報を取得する（未ログインなら401）。
+// 遅刻回数（lateCount）は所属する全グループの GroupMember.lateCount の合計を返す。
 usersRoute.get('/me', async (c) => {
   const userId = await getLoginUserId(c)
   if (!userId) {
@@ -24,6 +25,12 @@ usersRoute.get('/me', async (c) => {
         image: true,
         createdAt: true,
         updatedAt: true,
+        // グループごとの遅刻回数（ホーム画面の表示に使う）
+        groupMembers: {
+          select: {
+            lateCount: true,
+          },
+        },
       },
     })
 
@@ -31,7 +38,21 @@ usersRoute.get('/me', async (c) => {
       return c.json({ error: 'ユーザが見つかりません' }, 404)
     }
 
-    return c.json(user)
+    // 全グループの遅刻回数を合計して「ユーザーの遅刻回数」として返す
+    const lateCount = user.groupMembers.reduce(
+      (sum, member) => sum + member.lateCount,
+      0
+    )
+
+    return c.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      lateCount,
+    })
   } catch (error) {
     console.error('ログインユーザ情報の取得に失敗しました:', error)
     return c.json({ error: 'ログインユーザ情報の取得に失敗しました' }, 500)

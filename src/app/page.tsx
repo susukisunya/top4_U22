@@ -21,11 +21,24 @@ type ApiEventData = {
   } | null;
 };
 
+// GET /api/users/me のレスポンス型（遅刻回数の表示に使う）
+type ApiUserData = {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lateCount: number;
+};
+
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   // 次回のイベント情報をAPIから取得する（取得失敗時やイベントが無い場合は null）
   let nextEvent: EventCardData | null = null;
+  // ログイン中ユーザーの遅刻回数（取得失敗時は 0）
+  let lateCount = 0;
 
   try {
     const base = process.env.NEXT_PUBLIC_APP_URL;
@@ -78,12 +91,33 @@ export default async function Home() {
     console.error("次回イベントの取得に失敗しました:", error);
   }
 
+  // ログイン中ユーザーの遅刻回数をAPIから取得する
+  try {
+    const base = process.env.NEXT_PUBLIC_APP_URL;
+    // サーバーコンポーネントから内部APIを呼ぶ場合、セッションCookieを明示的に転送する
+    const cookieHeader = (await headers()).get("cookie") ?? "";
+    const res = await fetch(`${base}/api/users/me`, {
+      cache: "no-store",
+      headers: { cookie: cookieHeader },
+    });
+
+    if (res.ok) {
+      const me: ApiUserData = await res.json();
+      lateCount = me.lateCount ?? 0;
+    } else {
+      // APIが401等を返した場合（未ログイン／セッションCookieの転送漏れなど）
+      console.error(`/api/users/me が ${res.status} を返しました`);
+    }
+  } catch (error) {
+    console.error("遅刻回数の取得に失敗しました:", error);
+  }
+
   return (
     <main className="mx-auto flex min-h-screen w-[390px] flex-col bg-white border pt-20 pb-20">
       <Header />
 
       <div className="p-4 space-y-6">
-        <MonthlyLateCard />
+        <MonthlyLateCard lateCount={lateCount} />
 
         <Link
           href = "/group/1/event"

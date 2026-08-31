@@ -18,7 +18,7 @@ type EventCardProps = {
 export function EventCard({ event }: EventCardProps) {
   // イベントの基本ラベル
   const MISSION_DATA = {
-    label: "次回のミッション",
+    label: "次回の待ち合わせ",
     timeLabel: "集合時間",
   }
 

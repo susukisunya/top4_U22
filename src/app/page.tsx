@@ -9,6 +9,7 @@ import Link from "next/link";
 // GET /api/events の次回イベント表示用の型
 type ApiEventData = {
   id: string;
+  groupId: string;
   title: string;
   meetingTime: string;
   destination: {
@@ -37,6 +38,8 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   // 次回のイベント情報をAPIから取得する（取得失敗時やイベントが無い場合は null）
   let nextEvent: EventCardData | null = null;
+  // 次回イベントに対応する詳細ページのリンク先（groupId / eventId）
+  let nextEventLink: { groupId: string; eventId: string } | null = null;
   // ログイン中ユーザーの遅刻回数（取得失敗時は 0）
   let lateCount = 0;
 
@@ -76,11 +79,20 @@ export default async function Home() {
             month: "long",
             day: "numeric",
             weekday: "short",
+            // サーバーはUTCのため、日本のタイムゾーンを明示して9時間のずれを防ぐ
+            timeZone: "Asia/Tokyo",
           }),
           meetTime: meetingDate.toLocaleTimeString("ja-JP", {
             hour: "2-digit",
             minute: "2-digit",
+            // サーバーはUTCのため、日本のタイムゾーンを明示して9時間のずれを防ぐ
+            timeZone: "Asia/Tokyo",
           }),
+        };
+        // イベント詳細ページへのリンク先を保持する
+        nextEventLink = {
+          groupId: target.groupId,
+          eventId: target.id,
         };
       }
     } else {
@@ -119,13 +131,19 @@ export default async function Home() {
       <div className="p-4 space-y-6">
         <MonthlyLateCard lateCount={lateCount} />
 
+        {/* 次回のイベント情報（イベントが無い場合は「イベント無し」と表示）
+            イベントがある場合のみ詳細ページへのリンクにする */}
         <Link
-          href = "/group/1/event"
-          >
-      
-        {/* 次回のイベント情報（イベントが無い場合は「イベント無し」と表示） */}
-        <EventCard event={nextEvent} />
-           </Link>
+          className={nextEventLink ? undefined : "pointer-events-none"}
+          href={
+            nextEventLink
+              ? `/group/${nextEventLink.groupId}/event/${nextEventLink.eventId}`
+              : "#"
+          }
+          aria-disabled={nextEventLink ? undefined : true}
+        >
+          <EventCard event={nextEvent} />
+        </Link>
 
         <ScheduleList />
       </div>
